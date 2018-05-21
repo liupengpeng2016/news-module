@@ -513,6 +513,7 @@ NewsModule.prototype = {
         },
         error: function () {
           window.isNewsLoading = false
+          callback && callback([])
         }
       })
     }
