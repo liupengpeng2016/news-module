@@ -323,7 +323,7 @@ function NewsModule (params) {
   this.showAd = params.showAd === false ? false : true
   this.newsOrigin = params.newsOrigin || 'dongfang'
   this.instance = params.instance || 0
-  this.adConfig = params.adConfig || [{origin: 'baidu', percent: 0.3}, {origin: '360', percent: 0.7}]
+  this.adConfig = params.adConfig || {"baidu": 0.3, "360": 0.7}
   this.replace360Ad = params.replace360Ad === false ? false : true
   this.loadPage = params.loadPage || 5
   this.reloadInterval = params.reloadInterval || 3000
@@ -686,12 +686,14 @@ NewsModule.prototype = {
       if ((i === 0 || i % 3 === 0) && this.showAd) {
         var result = Math.random()
         var percent = 0
-        for (var k = 0; k < this.adConfig.length; k++) {
-          if (result < percent + this.adConfig[k].percent && result >= percent) {
-            type = this.adConfig[k].origin
-            break
+        for (var k in this.adConfig) {
+          if (this.adConfig.hasOwnProperty(k)) {
+            if (result < percent + this.adConfig[k] && result >= percent) {
+              type = k
+              break
+            }
+            percent += this.adConfig[k]
           }
-          percent += this.adConfig[k].percent
         }
         switch (type) {
           case 'baidu': ad = this.baiduAdContainer(this.adId); break
