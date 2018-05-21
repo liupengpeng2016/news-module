@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    *{
+      margin:0;
+      padding:0;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <script type="text/javascript">
+    /*商业化整合信息流180*135 创建于 2018/5/8*/
+    var cpro_id = "u3433620";
+    </script>
+  </div>
+  <script type="text/javascript" src="//cpro.baidustatic.com/cpro/ui/c.js"></script>
+  <script>
+    var idStr = location.hash.slice(1);
+    var dom = parent.document.getElementById(idStr);
+    var times = 0;
+    var interval = 50
+    var totalT = 500
+    var t
+    function setH () {
+      var h = document.body.clientHeight
+      if (h === 0) {
+        dom.style.display = 'none'
+      } else {
+        dom.style.display = 'block'
+        dom.style.height = h + 'px'
+      }
+    }
+    t = setInterval(function () {
+      if (times * interval >= totalT) {
+        return clearInterval(t)
+      } else {
+        setH()
+      }
+      times++
+    }, interval)
+  </script>
+</body>
+</html>
