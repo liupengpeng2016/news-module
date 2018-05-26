@@ -111,6 +111,29 @@ DomOperate.prototype = {
     }
     return $l(children)
   },
+  eq: function (index) {
+    return $l(this[0])
+  },
+  trigger: function (eventType) {
+    var evt
+    try {
+      evt = new Event(eventType, {
+        bubbles: true
+      })
+    } catch (err) {
+      if (document.createEvent) {
+        evt = document.createEvent('Event')
+        evt.initEvent(eventType, true, false)
+      }
+    }
+    for(var i = 0; i < this.length; i++) {
+      if (this[i].dispatchEvent) {
+        this[i].dispatchEvent(evt)
+      } else {
+        this[i].fireEvent('on' + eventType)
+      }
+    }
+  },
   index: function (index) {
     var children = $l(this[0].parentNode).child()
     if (parseInt(index)) {
@@ -346,6 +369,7 @@ function NewsModule (params) {
   this.topInstance = params.topInstance || 0
   // second add
   this.showSpace = params.showSpace || 0
+  this.changeTabWay = params.changeTabWay || 1
   this.actionAtBottom = params.actionAtBottom || 'load'
   this.containerHeight = params.containerHeight || 0
   this.newsMode = params.newsMode || 3
@@ -359,8 +383,8 @@ function NewsModule (params) {
   this._360ccId = params._360ccId || "OBHnX7"
   this._360adId = params._360adId || 'mCzFYt'
   // computed params
-  this.target = $l('#' + this.containerId)[0]
   this.newsBuffer = {nurl: [], nindex: []}
+  this.target = $l('#' + this.containerId)[0]
   this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRadio + 1)
   this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRadio + 1)
   this.state = {
@@ -390,7 +414,7 @@ function NewsModule (params) {
   if (!params._360adId) {
     console.error('_360adId is required')
   }
-  // 初始化数据
+  // 初始化dom结构
   if (this.containerHeight) {
     $l(this.target).addClass('n256-tab-title-fixed')
   }
@@ -399,6 +423,8 @@ function NewsModule (params) {
   }
   this.createTab()
   this.createNewsContainer()
+  // dom缓存
+  this.newsContainer = $l(this.target).find('.n256-tab-item-container')[0]
   if (this._360ccp === 'bottom' && this.isShow360cc) {
     this.create360cc()
   }
@@ -406,14 +432,22 @@ function NewsModule (params) {
     this.createLoadNotice()
     this.createNoNewsNotice()
   }
+  // 事件绑定
   this.bindEvent()
   this.bindStatisticsEvent()
+  // 初始化接口数据
   if (this.containerHeight) {
-    this.target.style.height = this.containerHeight + 'px'
-    this.target.style.overflow = 'scroll'
-    this.target.style.overflowX= 'hidden'
+    this.newsContainer.style.height = this.containerHeight + 'px'
+    this.newsContainer.style.overflow = 'scroll'
+    this.newsContainer.style.overflowX= 'hidden'
   }
-  $l('.n256-news-tab').child()[0].click()
+  var eventType
+  if (this.changeTabWay === 1) {
+    eventType = 'mouseover'
+  } else if (this.changeTabWay === 2) {
+    eventType = 'click'
+  }
+  $l(this.target).find('.n256-news-tab').child().eq(0).trigger(eventType)
 }
 NewsModule.prototype = {
   constructor: NewsModule,
@@ -426,8 +460,8 @@ NewsModule.prototype = {
     p.className = 'n256-load-more-btn hide btn'
     // p.id = 'n256-load-more-btn'
     p.innerHTML = '点击加载更多'
-    this.target.appendChild(div)
-    this.target.appendChild(p)
+    this.newsContainer.appendChild(div)
+    this.newsContainer.appendChild(p)
   },
   create360cc: function () {
     var div = document.createElement('div')
@@ -446,7 +480,7 @@ NewsModule.prototype = {
     div.className = 'n256-nonews-notice hide'
     // div.id = 'n256-nonews-notice'
     div.innerHTML = '<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>'
-    this.target.appendChild(div)
+    this.newsContainer.appendChild(div)
   },
   newsTopTemplate: function (itemData, i) {
     var img = itemData.miniimg[0].src
@@ -733,11 +767,14 @@ NewsModule.prototype = {
     this.target.appendChild(div)
   },
   createNewsContainer: function () {
+    var newsItemContainer = document.createElement('div')
+    newsItemContainer.className = 'n256-tab-item-container'
+    this.target.appendChild(newsItemContainer)
     for(var i = 0; i < this.tabData.length; i++) {
       var div = document.createElement('div')
       div.id = 'n256-tab-item-' + this.tabData[i][1]
       div.className = 'n256-tab-item'
-      this.target.appendChild(div)
+      newsItemContainer.appendChild(div)
     }
   },
   fillNews: function (newsData, isClear) {
@@ -965,8 +1002,8 @@ NewsModule.prototype = {
     $l('.n256-load-more-btn').on('click', function () {
      newsModule.getNews()
     })
-    // 点击tab切换
-    $l('.n256-news-tab').on('click', 'span', clickTabHandle)
+    // tab切换
+    $l('.n256-news-tab').on(newsModule.changeTabWay === 1 ? 'mouseover' : 'click', 'span', clickTabHandle)
     function clickTabHandle () {
       var page = newsModule.state.pagesList[newsModule.state.activeIndex]
       if (page >= newsModule.loadPage) {
@@ -999,9 +1036,9 @@ NewsModule.prototype = {
        var scrollTop
        var clientHeight
        if (newsModule.containerHeight) {
-         docHeight = newsModule.target.scrollHeight
-         scrollTop = newsModule.target.scrollTop
-         clientHeight = newsModule.target.clientHeight
+         docHeight = newsModule.newsContainer.scrollHeight
+         scrollTop = newsModule.newsContainer.scrollTop
+         clientHeight = newsModule.newsContainer.clientHeight
        } else {
          docHeight = document.documentElement.scrollHeight || document.body.scrollHeight
          scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
@@ -1015,20 +1052,19 @@ NewsModule.prototype = {
        // 滚动到底部固定
        if (newsModule.actionAtBottom === 'fixed') {
          if (spaceToBottom <= newsModule.topInstance) {
-           newsModule.target.style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+           newsModule.newsContainer.style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
          } else {
-           newsModule.target.style.paddingBottom = '0px'
+           newsModule.newsContainer.style.paddingBottom = '0px'
          }
-         var container = $l(newsModule.target)
          var target = $l('.n256-tab-item')[newsModule.state.activeIndex]
          var targetH = target.offsetHeight
-         var offsetT = container.offset().top
+         var offsetT = $l(newsModule.newsContainer).offset().top
          var scrollT = window.pageYOffset || (document.documentElement || document.body).scrollTop
          var clientH = window.innerHeight || (document.documentElement || document.body).clientHeight
          if (targetH + offsetT - scrollT <= clientH) {
            $l(target).addClass('fixed-position')
          } else {
-           // $l(target).removeClass('fixed-position')
+           $l(target).removeClass('fixed-position')
          }
        } else if (newsModule.actionAtBottom === 'load') {
          // 加载页数及按钮控制
@@ -1048,22 +1084,20 @@ NewsModule.prototype = {
         }
       }
     }
-    var scrollTarget = newsModule.containerHeight ? newsModule.target : window
+    var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
     if (window.addEventListener) {
       scrollTarget.addEventListener('scroll', scrollLoadHandle)
     } else {
       scrollTarget.attachEvent('onscroll', scrollLoadHandle)
     }
-    // 滚动到页面底部固定
-    if (newsModule.actionAtBottom === 'fixed') {
-      if (window.addEventListener) {
-        scrollTarget.addEventListener('scroll', fixedControl)
-      } else {
-        scrollTarget.attachEvent('onscroll', fixedControl)
-      }
-      function fixedControl () {
-      }
-    }
+    // // 滚动到页面底部固定
+    // if (newsModule.actionAtBottom === 'fixed') {
+    //   if (window.addEventListener) {
+    //     scrollTarget.addEventListener('scroll', fixedControl)
+    //   } else {
+    //     scrollTarget.attachEvent('onscroll', fixedControl)
+    //   }
+    // }
   },
   bindStatisticsEvent: function () {
     var newsModule =  this
@@ -1108,18 +1142,18 @@ NewsModule.prototype = {
     // 点击新闻
     $l(newsModule.target).on('click', '.news-item', function (evt) {
       if (evt.button === 2) return
-     var type = 4
-     var nurl = $l(this).attr('data-url')
-     var nindex = 0
-     var hindex = $l(this).attr('data-num')
-     var page = $l(this.parentNode).attr('data-page')
-     if (page >= 2) {
-       nindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-     } else {
-       nindex = $l(this).index()
-     }
-     newsModule.newsStatistics(type, [nurl], [nindex + 1], hindex ? [hindex] : '')
-     var url = $l(this).attr('data-url')
+      var type = 4
+      var nurl = $l(this).attr('data-url')
+      var nindex = 0
+      var hindex = $l(this).attr('data-num')
+      var page = $l(this.parentNode).attr('data-page')
+      if (page >= 2) {
+        nindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+      } else {
+        nindex = $l(this).index()
+      }
+      newsModule.newsStatistics(type, [nurl], [nindex + 1], hindex ? [hindex] : '')
+      var url = $l(this).attr('data-url')
     })
     // 点击百度广告
     function clickBaiduAdHandle (evt) {
@@ -1149,7 +1183,7 @@ NewsModule.prototype = {
       for (var i = 0; i < newsList.length; i++) {
         var isvisited = $l(newsList[i]).attr('isvisited')
         if ($l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited) {
-          //console.log('show news')
+          console.log('show news')
           // 参数处理
           var nindex = 0
           var nurl = $l(newsList[i]).attr('data-url')
@@ -1169,7 +1203,7 @@ NewsModule.prototype = {
         var item = $l(_360Ad[i])
         var isvisited = item.attr('isvisited')
         if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
-          // console.log('show 360ad')
+          console.log('show 360ad')
           // 参数处理
           var aurl = item.attr('data-url')
           var adsenseid = item.attr('data-num')
@@ -1194,7 +1228,7 @@ NewsModule.prototype = {
         var item = $l(baiduAd[i])
         var isvisited = item.attr('isvisited')
         if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
-          // console.log('show baidu ad')
+          console.log('show baidu ad')
           // 参数处理
           var aurl = item.attr('data-url')
           var adsenseid = item.attr('data-num')
@@ -1213,7 +1247,7 @@ NewsModule.prototype = {
       }
     }
     this.checkShow = showStatisticsHandle
-    var scrollTarget = newsModule.containerHeight ? newsModule.target : window
+    var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
     if (window.addEventListener) {
       scrollTarget.addEventListener('scroll', showStatisticsHandle)
     } else {

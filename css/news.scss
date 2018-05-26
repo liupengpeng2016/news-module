@@ -1,5 +1,6 @@
+@charset "UTF-8";
 // style config
-$containerW:400px !default; // 容器宽
+$containerW:auto !default; // 容器宽
 $containerId: #n256-news-container !default; //容器id
 $borderC: #d8dbe5 !default; // 容器边框颜色
 $fontF: "微软雅黑" !default; // 容器内字体类型
@@ -61,8 +62,8 @@ $tabLineHeight: 40px !default;
     /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
   ::-webkit-scrollbar
   {
-      width: 16px;
-      height: 16px;
+      width: 12px;
+      height: 12px;
       background-color: #F5F5F5;
   }
 
@@ -105,7 +106,7 @@ $tabLineHeight: 40px !default;
     // width:100%;
     // color:#666;
     // font-size: 20px;
-    // border-bottom: 1px solid $borderC;
+    border-bottom: 1px solid $borderC;
     span{
       cursor: pointer;
     }
@@ -118,6 +119,9 @@ $tabLineHeight: 40px !default;
         transform: none;
       }
     }
+  }
+  .n256-tab-item-container{
+    position:relative;
   }
   .n256-tab-item{
       display:none;
