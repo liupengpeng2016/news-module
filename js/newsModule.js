@@ -382,6 +382,9 @@ function NewsModule (params) {
   this.dongfangNewsId = params.dongfangNewsId || '02151'
   this._360ccId = params._360ccId || "OBHnX7"
   this._360adId = params._360adId || 'mCzFYt'
+  this.scrollInterval = params.scrollInterval || 500
+  this.scrollTimes = params.scrollTimes || 0
+  this.scrollType = params.scrollType || 'times'
   // computed params
   this.newsBuffer = {nurl: [], nindex: []}
   this.target = $l('#' + this.containerId)[0]
@@ -434,7 +437,7 @@ function NewsModule (params) {
   }
   // 事件绑定
   this.bindEvent()
-  // this.bindStatisticsEvent()
+  this.bindStatisticsEvent()
   // 初始化接口数据
   if (this.containerHeight) {
     this.newsContainer.style.height = this.containerHeight + 'px'
@@ -843,6 +846,11 @@ NewsModule.prototype = {
       var num = $l(adBaidu[i]).attr('data-num')
       adBaidu[i].innerHTML = this.baiduAdTemplate([num])
     }
+    if (!newsModule.adConfig[360]) {
+      setTimeout(function () {
+        newsModule.checkShow(null, true)
+      }, 600)
+    }
     // 填充360广告
     var _this = this
     if (!adNum360) return
@@ -852,7 +860,6 @@ NewsModule.prototype = {
       _360Num.push($l(ad360[i]).attr('data-num'))
     }
     //console.log('get 360 ad')
-
     this.get360Ad(adNum360, _360Num, function (ads) {
       if (!ads) {
         ads = []
@@ -871,8 +878,8 @@ NewsModule.prototype = {
       }
       // 更新后检测展现部分
       setTimeout(function () {
-        newsModule.checkShow()
-      }, 1000)
+        newsModule.checkShow(null, true)
+      }, 600)
     })
   },
   showNonewsNotice: function (isShow) {
@@ -1170,79 +1177,99 @@ NewsModule.prototype = {
     //   clickBaiduAdHandle.call(this, evt)
     // })
     // 所有内容展现时统计处理
-    function showStatisticsHandle () {
-      var container = $l('.n256-tab-item').eq(newsModule.state.activeIndex)
-      var newsList = container.find('.news-item')
-      var _360Ad = container.find('.ad-360')
-      var baiduAd = container.find('.ad-baidu')
-      for (var i = 0; i < newsList.length; i++) {
-        var isvisited = $l(newsList[i]).attr('isvisited')
-        if ($l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited) {
-          console.log('show news')
-          // 参数处理
-          var nindex = 0
-          var nurl = $l(newsList[i]).attr('data-url')
-          var page = $l(newsList[i].parentNode).attr('data-page')
-          if (page >= 2) {
-            nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-          } else {
-            nindex = $l(newsList[i]).index()
-          }
-          // 展现的新闻放入缓冲区
-          newsModule.newsBuffer.nurl.push(nurl)
-          newsModule.newsBuffer.nindex.push(nindex + 1)
-          $l(newsList[i]).attr('isvisited', 'true')
-        }
-      }
-      for (var i = 0; i < _360Ad.length; i++) {
-        var item = $l(_360Ad[i])
-        var isvisited = item.attr('isvisited')
-        if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
-          console.log('show 360ad')
-          // 参数处理
-          var aurl = item.attr('data-url')
-          var adsenseid = item.attr('data-num')
-          var aindex = 0
-          var channelid = 1001
-          var page = $l(item[0].parentNode).attr('data-page')
-          if (page >= 2) {
-            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-          } else {
-            aindex = item.index()
-          }
-          // 展现的360广告直接发送统计
-          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
-          if (item.child()[0]) {
-            var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
-            newsModule._360Statistics(imptk)
-          }
-          item.attr('isvisited', 'true')
-        }
-      }
-      for (var i = 0; i < baiduAd.length; i++) {
-        var item = $l(baiduAd[i])
-        var isvisited = item.attr('isvisited')
-        if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
-          console.log('show baidu ad')
-          // 参数处理
-          var aurl = item.attr('data-url')
-          var adsenseid = item.attr('data-num')
-          var aindex = 0
-          var channelid = 1002
-          var page = $l(baiduAd[i].parentNode).attr('data-page')
-          if (page >= 2) {
-            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-          } else {
-            aindex = item.index()
-          }
-          // 展现的百度广告直接发送统计
-          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
-          item.attr('isvisited', 'true')
-        }
-      }
-    }
-    this.checkShow = showStatisticsHandle
     var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
+    var showStatisticsHandle = (function () {
+      var prevTime = 0, times = 0, nowTime = 0
+      return function (evt, forceExecute) {
+        if (!forceExecute) {
+          // 过滤执行次数
+          var scrollSpaceNow
+          times++
+          if (newsModule.scrollType === 'times') {
+            if (times >= newsModule.scrollTimes) {
+              times = 0
+            } else {
+              return
+            }
+          } else {
+            nowTime = new Date().getTime()
+            if (nowTime - prevTime > newsModule.scrollInterval) {
+              prevTime = nowTime
+            } else {
+              return
+            }
+          }
+        }
+        // 执行展现统计处理
+        var container = $l(newsModule.target).find('.n256-tab-item').eq(newsModule.state.activeIndex)
+        var newsList = container.find('.news-item')
+        var _360Ad = container.find('.ad-360')
+        var baiduAd = container.find('.ad-baidu')
+        for (var i = 0; i < newsList.length; i++) {
+          var isvisited = $l(newsList[i]).attr('isvisited')
+          if ($l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited) {
+            // 参数处理
+            var nindex = 0
+            var nurl = $l(newsList[i]).attr('data-url')
+            var page = $l(newsList[i].parentNode).attr('data-page')
+            if (page >= 2) {
+              nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              nindex = $l(newsList[i]).index()
+            }
+            // 展现的新闻放入缓冲区
+            newsModule.newsBuffer.nurl.push(nurl)
+            newsModule.newsBuffer.nindex.push(nindex + 1)
+            $l(newsList[i]).attr('isvisited', 'true')
+          }
+        }
+        for (var i = 0; i < _360Ad.length; i++) {
+          var item = $l(_360Ad[i])
+          var isvisited = item.attr('isvisited')
+          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
+            // 参数处理
+            var aurl = item.attr('data-url')
+            var adsenseid = item.attr('data-num')
+            var aindex = 0
+            var channelid = 1001
+            var page = $l(item[0].parentNode).attr('data-page')
+            if (page >= 2) {
+              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              aindex = item.index()
+            }
+            // 展现的360广告直接发送统计
+            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+            if (item.child()[0]) {
+              var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
+              newsModule._360Statistics(imptk)
+            }
+            item.attr('isvisited', 'true')
+          }
+        }
+        for (var i = 0; i < baiduAd.length; i++) {
+          var item = $l(baiduAd[i])
+          var isvisited = item.attr('isvisited')
+          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
+            // 参数处理
+            var aurl = item.attr('data-url')
+            var adsenseid = item.attr('data-num')
+            var aindex = 0
+            var channelid = 1002
+            var page = $l(baiduAd[i].parentNode).attr('data-page')
+            if (page >= 2) {
+              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              aindex = item.index()
+            }
+            // 展现的百度广告直接发送统计
+            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+            item.attr('isvisited', 'true')
+          }
+        }
+      }
+    })()
+    this.checkShow = showStatisticsHandle
     if (window.addEventListener) {
       scrollTarget.addEventListener('scroll', showStatisticsHandle)
     } else {
