@@ -112,7 +112,7 @@ DomOperate.prototype = {
     return $l(children)
   },
   eq: function (index) {
-    return $l(this[0])
+    return $l(this[index])
   },
   trigger: function (eventType) {
     var evt
@@ -868,7 +868,7 @@ NewsModule.prototype = {
       // 更新后检测展现部分
       setTimeout(function () {
         newsModule.checkShow()
-      }, 0)
+      }, 1000)
     })
   },
   showNonewsNotice: function (isShow) {
@@ -1044,7 +1044,6 @@ NewsModule.prototype = {
          scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
          clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
        }
-
        var spaceToBottom = docHeight - Math.ceil(scrollTop + clientHeight)
        if (!scrollTop) {
          return
@@ -1090,14 +1089,6 @@ NewsModule.prototype = {
     } else {
       scrollTarget.attachEvent('onscroll', scrollLoadHandle)
     }
-    // // 滚动到页面底部固定
-    // if (newsModule.actionAtBottom === 'fixed') {
-    //   if (window.addEventListener) {
-    //     scrollTarget.addEventListener('scroll', fixedControl)
-    //   } else {
-    //     scrollTarget.attachEvent('onscroll', fixedControl)
-    //   }
-    // }
   },
   bindStatisticsEvent: function () {
     var newsModule =  this
@@ -1145,38 +1136,38 @@ NewsModule.prototype = {
       var type = 4
       var nurl = $l(this).attr('data-url')
       var nindex = 0
-      var hindex = $l(this).attr('data-num')
+      // var hindex = $l(this).attr('data-num')
       var page = $l(this.parentNode).attr('data-page')
       if (page >= 2) {
         nindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
       } else {
         nindex = $l(this).index()
       }
-      newsModule.newsStatistics(type, [nurl], [nindex + 1], hindex ? [hindex] : '')
+      newsModule.newsStatistics(type, [nurl], [nindex + 1])
       var url = $l(this).attr('data-url')
     })
-    // 点击百度广告
-    function clickBaiduAdHandle (evt) {
-      var target = $l($l(this).child()[0])
-      var aurl = ''
-      var aindex
-      var page = $l(this.parentNode).attr('data-page')
-      var channelid = '1002'
-      if (page >= 2) {
-        aindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-      } else {
-        aindex = $l(this).index()
-      }
-      var adsenseid = $l(this).attr('data-num')
-      newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
-    }
-    $l(newsModule.target).on('click', '.ad-baidu', function () {
-      if (evt.button === 2) return
-      clickBaiduAdHandle.call(this, evt)
-    })
+    // // 点击百度广告
+    // function clickBaiduAdHandle (evt) {
+    //   // var target = $l(this).child().eq(0)
+    //   var aurl = ''
+    //   var aindex
+    //   var page = $l(this.parentNode).attr('data-page')
+    //   var channelid = '1002'
+    //   if (page >= 2) {
+    //     aindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+    //   } else {
+    //     aindex = $l(this).index()
+    //   }
+    //   var adsenseid = $l(this).attr('data-num')
+    //   newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
+    // }
+    // $l(newsModule.target).on('click', '.ad-baidu', function () {
+    //   if (evt.button === 2) return
+    //   clickBaiduAdHandle.call(this, evt)
+    // })
     // 所有内容展现时统计处理
     function showStatisticsHandle () {
-      var container = $l($l('.n256-tab-item')[newsModule.state.activeIndex])
+      var container = $l('.n256-tab-item').eq(newsModule.state.activeIndex)
       var newsList = container.find('.news-item')
       var _360Ad = container.find('.ad-360')
       var baiduAd = container.find('.ad-baidu')
