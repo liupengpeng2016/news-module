@@ -722,14 +722,14 @@ NewsModule.prototype = {
   getNews: (function () {
     var times = 0
     return function (isReset) {
-      if (times >= this.reloadTimes) {
-        times = 0
-        return this.showNonewsNotice(true)
-      }
       var _this = this
       this.getDongfangNews(function (res) {
         if (!res && !res.length) {
           times++
+          if (times >= _this.reloadTimes) {
+            times = 0
+            return _this.showNonewsNotice(true)
+          }
           setTimeout(function () {
             _this.getNews()
           }, _this.reloadInterval)
@@ -740,6 +740,10 @@ NewsModule.prototype = {
         }
       }, function () {
         times++
+        if (times >= _this.reloadTimes) {
+          times = 0
+          return _this.showNonewsNotice(true)
+        }
         setTimeout(function () {
           _this.getNews()
         }, _this.reloadInterval)
