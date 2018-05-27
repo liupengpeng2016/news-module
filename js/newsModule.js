@@ -434,7 +434,7 @@ function NewsModule (params) {
   }
   // 事件绑定
   this.bindEvent()
-  this.bindStatisticsEvent()
+  // this.bindStatisticsEvent()
   // 初始化接口数据
   if (this.containerHeight) {
     this.newsContainer.style.height = this.containerHeight + 'px'
@@ -790,7 +790,7 @@ NewsModule.prototype = {
     for (var i = 0; i < newsData.length; i++) {
       // 选取广告类型
       var ad = ''
-      if ((i === 0 || i % 3 === 0) && this.showAd) {
+      if ((i === 0 || i % this.newsRadio === 0) && this.showAd) {
         var result = Math.random()
         var percent = 0
         for (var k in this.adConfig) {
@@ -826,7 +826,7 @@ NewsModule.prototype = {
         }
       }
       news = type == 'multi' ? this.multiImgNewsTemplate(newsData[i]) : this.singleImgNewsTemplate(newsData[i])
-      // pin jie
+      // pinjie
       content += news
       content += ad
     }
