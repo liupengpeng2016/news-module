@@ -383,8 +383,8 @@ function NewsModule (params) {
   this._360ccId = params._360ccId || "OBHnX7"
   this._360adId = params._360adId || 'mCzFYt'
   this.scrollInterval = params.scrollInterval || 500
-  this.scrollTimes = params.scrollTimes || 0
-  this.scrollType = params.scrollType || 'times'
+  this.scrollTimes = params.scrollTimes || 8
+  this.scrollOptimizeMethod = params.scrollOptimizeMethod || 'times'
   // computed params
   this.newsBuffer = {nurl: [], nindex: []}
   this.target = $l('#' + this.containerId)[0]
@@ -1185,7 +1185,7 @@ NewsModule.prototype = {
           // 过滤执行次数
           var scrollSpaceNow
           times++
-          if (newsModule.scrollType === 'times') {
+          if (newsModule.scrollOptimizeMethod === 'times') {
             if (times >= newsModule.scrollTimes) {
               times = 0
             } else {
