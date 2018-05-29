@@ -28,7 +28,7 @@ DomOperate.prototype = {
     } else if (strType === 'class') {
       var tags = (gather || document).getElementsByTagName('*')
       var classDom = []
-      var classExp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+      var classExp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)', 'i')
       for (var i = 0; i < tags.length; i++) {
         if (classExp.test(tags[i].className)) {
           classDom.push(tags[i])
@@ -210,23 +210,27 @@ DomOperate.prototype = {
     return getOffset(this[0])
   },
   isInView: function (hasHeight, showSpace) {
-    var scrollT
-    var clientHeight
-    var offsetT
+    var scrollT1, scrollT2
+    var clientHeight1, clientHeight2
+    var offsetT1, offsetT2
+    var isInView = false
+    scrollT1 = this[0].offsetParent.scrollTop
+    clientHeight1 = this[0].offsetParent.clientHeight
+    offsetT1 = this[0].offsetTop
+    scrollT2 = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+    clientHeight2 = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+    offsetT2 = this.offset().top
+
     if (hasHeight) {
-      scrollT = this[0].offsetParent.scrollTop
-      clientHeight = this[0].offsetParent.clientHeight
-      offsetT = this[0].offsetTop
+      if (scrollT1 + clientHeight1 >= offsetT1 + showSpace && scrollT2 + clientHeight2 >= offsetT2 -  scrollT1 + showSpace) {
+        isInView = true
+      }
     } else {
-      scrollT = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
-      offsetT = this.offset().top
+      if (scrollT2 + clientHeight2 >= offsetT2 + showSpace) {
+        isInView = true
+      }
     }
-    if (scrollT + clientHeight >= offsetT + showSpace) {
-      return true
-    } else {
-      return false
-    }
+    return isInView
   },
   find: function (str) {
     return new DomOperate(str, this[0])
@@ -259,11 +263,21 @@ var $lMethods = {
       var jsonp = obj.jsonp || 'callback'
       var jsonpCallback = obj.jsonpCallback || 'n' + Math.random().toString(26).slice(2)
       window[jsonpCallback] = function (res) {
+        script.loaded = true
         obj.success(res)
       }
       var jsonpStr = (paramsStr ? "&" : '') + jsonp + '=' + jsonpCallback
       script.src = obj.url + '?' + paramsStr + jsonpStr
       document.getElementsByTagName('head')[0].appendChild(script)
+      // jsonp超时处理
+      if (obj.timeout) {
+        setTimeout(function () {
+          if (!script.loaded) {
+            window[jsonpCallback] = null
+            obj.error && obj.error()
+          }
+        }, obj.timeout)
+      }
     } else {
       if (window.XMLHttpRequest) {
         xml = new XMLHttpRequest()
@@ -362,7 +376,7 @@ function NewsModule (params) {
   this.replace360Ad = params.replace360Ad === false ? false : true
   this.loadPage = params.loadPage || 5
   this.reloadInterval = params.reloadInterval || 3000
-  this.reloadTimes = params.reloadTimes || 5
+  this.reloadTimes = params.reloadTimes || 3
   this.maxPage = params.maxPage || 10
   this.isShowTab = params.isShowTab === false ? false : true
   this.baiduAdUrl = params.baiduAdUrl || 'ads/baiduAd.html'
@@ -383,8 +397,10 @@ function NewsModule (params) {
   this._360ccId = params._360ccId || "OBHnX7"
   this._360adId = params._360adId || 'mCzFYt'
   this.scrollInterval = params.scrollInterval || 500
-  this.scrollTimes = params.scrollTimes || 8
+  this.scrollTimes = params.scrollTimes || 6
   this.scrollOptimizeMethod = params.scrollOptimizeMethod || 'times'
+  this.simpleInfo = params.simpleInfo && true
+  this.scrollPosition = params.scrollPosition || 'lastPosition'
   // computed params
   this.newsBuffer = {nurl: [], nindex: []}
   this.target = $l('#' + this.containerId)[0]
@@ -393,7 +409,8 @@ function NewsModule (params) {
   this.state = {
     activeIndex: 0,
     pagesList: [],
-    adsenseidList:[]
+    adsenseidList:[],
+    scrollPosition: []
   }
   // params validate
   if (!params.adsenseid) {
@@ -462,7 +479,7 @@ NewsModule.prototype = {
     div.innerHTML = '加载中...'
     p.className = 'n256-load-more-btn hide btn'
     // p.id = 'n256-load-more-btn'
-    p.innerHTML = '点击加载更多'
+    p.innerHTML = '点击重新加载'
     this.newsContainer.appendChild(div)
     this.newsContainer.appendChild(p)
   },
@@ -485,20 +502,6 @@ NewsModule.prototype = {
     div.innerHTML = '<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>'
     this.newsContainer.appendChild(div)
   },
-  newsTopTemplate: function (itemData, i) {
-    var img = itemData.miniimg[0].src
-    var title = itemData.topic
-    var url = itemData.url
-    var content = '<a class="n256-news-top-list-item news-item" target=_blank href=' + url + ' data-url=' + url + ' data-num=' + (i + 1) + '>' +
-      '<div class="img">' +
-        '<img src="' + img + '" alt=""/>' +
-      '</div>' +
-      '<p class="title">' +
-        '<span>' + title + '</span>' +
-      '</p>' +
-      '</a>'
-    return content
-  },
   singleImgNewsTemplate: function (item, i) {
     var news = '<a class="n256-news-item-singleImg news-item"  target="_blank" href=' + item.url + ' data-url=' + item.url + '>' +
       '<div class="n256-news-img">' +
@@ -507,7 +510,8 @@ NewsModule.prototype = {
       '<div class="n256-news-content">' +
         '<div class="content">' +
         '<span class="title">' + item.topic + '</span>' +
-        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>' +
+        (this.simpleInfo ? '<p class="n256-news-info"><span>来源：' + item.source + '</span></p>' :
+        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
         '</div>' +
       '</div>' +
     '</a>'
@@ -628,18 +632,23 @@ NewsModule.prototype = {
     var newkey = '' // 上次请求数据中取
     var idx =  0 // 已加载信息条数
     var uid = getUid()
+    var isGetPosition = true
     // var qid = '02151' // 渠道信息
     var isFirst = true
     return function (callback, error, isReset) {
+      var _this = this
+      // 重置请求信息
       if (isReset) {
         startkey = ''
         newkey = ''
         idx =  0
+        isFirst = true
+        _this.state.pagesList[_this.state.activeIndex] = 0
+        $l(this.target).find('.n256-tab-item')[this.state.activeIndex].innerHTML = ''
       }
-      var _this = this
       function getPosition (next) {
         var position = $l.cookie('n256Position') || ''
-        if ($l.iev() <= 8) position = ' '
+        if ($l.iev() <= 8 || !isGetPosition) position = ' '
         if (position) {
           next && next(position)
         } else {
@@ -657,6 +666,7 @@ NewsModule.prototype = {
             jsonp: 'jsonp',
             jsonpCallback: 'n256position'
           })
+          isGetPosition = false
         }
       }
       function getNews (position) {
@@ -679,6 +689,7 @@ NewsModule.prototype = {
             position: position,
             newsnum: newsnum
           },
+          timeout: 2000,
           success: function (res) {
             // api stauts handle
             _this.state.pagesList[_this.state.activeIndex]++
@@ -700,28 +711,6 @@ NewsModule.prototype = {
       getPosition(getNews)
     }
   })(),
-  getNewsTop: function (callback, error) {
-    var _this = this
-    _this.newsStatistics(1)
-    $l.ajax({
-      url: 'http://newswifiapi.dftoutiao.com/newstop/change',
-      method: 'jsonp',
-      success: function (res) {
-        callback && callback(res.data)
-        _this.newsStatistics(2)
-      },
-      error: function () {
-        error && error()
-      },
-      params: {
-        qid: _this.dongfangNewsId,
-        ispc: 1,
-        newsnum: 20,
-        pgnum: 1
-      },
-      jsonp: 'jsonpcallback'
-    })
-  },
   getNews: (function () {
     var times = 0
     return function (isReset) {
@@ -743,6 +732,11 @@ NewsModule.prototype = {
         }
       }, function () {
         times++
+        // 首次请求失败隐藏
+        if (_this.state.pagesList[0] <= 0) {
+          _this.target.style.display = 'none'
+          return
+        }
         if (times >= _this.reloadTimes) {
           times = 0
           return _this.showNonewsNotice(true)
@@ -766,6 +760,7 @@ NewsModule.prototype = {
       this.tabData[i][0] + '</span>' +  sep
       this.state.pagesList.push(0)
       this.state.adsenseidList.push(this.adsenseid)
+      this.state.scrollPosition.push(0)
     }
     var div = document.createElement('div')
     // div.id = 'n256-news-tab'
@@ -779,7 +774,7 @@ NewsModule.prototype = {
     this.target.appendChild(newsItemContainer)
     for(var i = 0; i < this.tabData.length; i++) {
       var div = document.createElement('div')
-      div.id = 'n256-tab-item-' + this.tabData[i][1]
+      // div.id = 'n256-tab-item-' + this.tabData[i][1]
       div.className = 'n256-tab-item'
       newsItemContainer.appendChild(div)
     }
@@ -788,7 +783,7 @@ NewsModule.prototype = {
     var newsModule = this
     var adNum360 = 0
     var content = '', type
-    var newsContainer = $l('.n256-tab-item')[this.state.activeIndex]
+    var newsContainer = $l(this.target).find('.n256-tab-item')[this.state.activeIndex]
     var _this = this
     for (var i = 0; i < newsData.length; i++) {
       // 选取广告类型
@@ -883,9 +878,9 @@ NewsModule.prototype = {
     })
   },
   showNonewsNotice: function (isShow) {
-    var loadNotice = $l('.n256-news-loadnotice')
-    var loadMore = $l('.n256-load-more-btn')
-    var noNewsNotice = $l('.n256-load-more-btn')
+    var loadNotice = $l(this.target).find('.n256-news-loadnotice')
+    var loadMore = $l(this.target).find('.n256-load-more-btn')
+    var noNewsNotice =$l(this.target).find('.n256-load-more-btn')
     if (isShow) {
       loadNotice.addClass('hide')
       loadMore.addClass('hide')
@@ -897,8 +892,8 @@ NewsModule.prototype = {
     }
   },
   showBottomNotice: function (isShow) {
-    var loadNotice = $l('.n256-news-loadnotice')
-    var text = isShow ? '已经到底了，休息一会吧~' : '加载中...'
+    var loadNotice = $l(this.target).find('.n256-news-loadnotice')
+    var text = isShow ? '已经到底啦，点击重新加载' : '加载中...'
     loadNotice[0].innerHTML = text
   },
   _360Statistics: function (urlList) {
@@ -1009,23 +1004,28 @@ NewsModule.prototype = {
   },
   bindEvent: function () {
     var newsModule = this
-    // click lead more
-    $l('.n256-load-more-btn').on('click', function () {
+    // 点击加载更多按钮
+    $l(newsModule.target).find('.n256-load-more-btn').on('click', function () {
      newsModule.getNews()
     })
+    // 点击 到底了 按钮
+    $l(newsModule.target).find('.n256-news-loadnotice').on('click', function () {
+      newsModule.getNews(true)
+    })
     // tab切换
-    $l('.n256-news-tab').on(newsModule.changeTabWay === 1 ? 'mouseover' : 'click', 'span', clickTabHandle)
+    $l(newsModule.target).find('.n256-news-tab').on(newsModule.changeTabWay === 1 ? 'mouseover' : 'click', 'span', clickTabHandle)
     function clickTabHandle () {
+      newsModule.showBottomNotice(false)
       var page = newsModule.state.pagesList[newsModule.state.activeIndex]
       if (page >= newsModule.loadPage) {
-       $l('.n256-news-loadnotice').addClass('hide')
-       $l('.n256-load-more-btn').removeClass('hide')
+       $l(newsModule.target).find('.n256-news-loadnotice').addClass('hide')
+       $l(newsModule.target).find('.n256-load-more-btn').removeClass('hide')
       } else {
-       $l('.n256-news-loadnotice').removeClass('hide')
-       $l('.n256-load-more-btn').addClass('hide')
+       $l(newsModule.target).find('.n256-news-loadnotice').removeClass('hide')
+       $l(newsModule.target).find('.n256-load-more-btn').addClass('hide')
       }
       var isvisited = $l(this).attr('isvisited')
-      var tabs = $l('.n256-news-tab').child('span')
+      var tabs = $l(newsModule.target).find('.n256-news-tab').child('span')
       var index = $l(this).attr('data-index')
       var type = $l(this).attr('data-type')
       $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab')
@@ -1034,6 +1034,20 @@ NewsModule.prototype = {
       $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab-item')
       $l(tabs[index]).addClass('active-tab-item')
       newsModule.state.activeIndex = index
+      var scrollP = newsModule.state.scrollPosition[newsModule.state.activeIndex]
+      if (newsModule.containerHeight) {
+        if (newsModule.scrollPosition === 'top') {
+          newsModule.newsContainer.scrollTop = 0
+        } else if (newsModule.scrollPosition === 'lastPosition') {
+          newsModule.newsContainer.scrollTop = scrollP
+        }
+      } else {
+        if (newsModule.scrollPosition === 'top') {
+          window.scrollTo(0, 0)
+        } else if (newsModule.scrollPosition === 'lastPosition'){
+          window.scrollTo(0, scrollP)
+        }
+      }
       if (isvisited) {
         return
       } else if (!window.isNewsLoading) {
@@ -1059,6 +1073,8 @@ NewsModule.prototype = {
        if (!scrollTop) {
          return
        }
+       // 记录滚动位置
+       newsModule.state.scrollPosition[newsModule.state.activeIndex] = scrollTop
        // 滚动到底部固定
        if (newsModule.actionAtBottom === 'fixed') {
          if (spaceToBottom <= newsModule.topInstance) {
@@ -1066,7 +1082,7 @@ NewsModule.prototype = {
          } else {
            newsModule.newsContainer.style.paddingBottom = '0px'
          }
-         var target = $l('.n256-tab-item')[newsModule.state.activeIndex]
+         var target = $l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex]
          var targetH = target.offsetHeight
          var offsetT = $l(newsModule.newsContainer).offset().top
          var scrollT = window.pageYOffset || (document.documentElement || document.body).scrollTop
@@ -1082,8 +1098,8 @@ NewsModule.prototype = {
            return newsModule.showBottomNotice(true)
          } else if (newsModule.state.pagesList[newsModule.state.activeIndex] >= newsModule.loadPage){
            newsModule.showBottomNotice(true)
-           $l('.n256-news-loadnotice').addClass('hide')
-           $l('.n256-load-more-btn').removeClass('hide')
+           $l(newsModule.target).find('.n256-news-loadnotice').addClass('hide')
+           $l(newsModule.target).find('.n256-load-more-btn').removeClass('hide')
            return
          }
          // 加载下一页

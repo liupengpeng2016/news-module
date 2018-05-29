@@ -1,10 +1,10 @@
 @charset "UTF-8";
 // style config
-$containerW:auto !default; // 容器宽
 $containerId: #n256-news-container !default; //容器id
+$containerW:auto !default; // 容器宽
 $borderC: #d8dbe5 !default; // 容器边框颜色
 $fontF: "微软雅黑" !default; // 容器内字体类型
-$newsListW:700px !default; // 每个新闻的宽度
+$newsListW:auto !default; // 每个新闻的宽度
 $newsM:0px 0px 0px 20px !default; // 每个新闻的margin
 $newsP:20px 0px 20px 0px !default; // 每个新闻的padding
 
@@ -14,10 +14,14 @@ $multiImgSize: 180px 120px !default; // 多图新闻中图片的宽高
 $multiImgM: 0px 10px 12px 0px !default; // 多图新闻中图片的margin
 $baiduAdP: 0 0 0 0 !default; // 百度广告padding
 
-$titleFont: 20px !default; // 标题字体大小
-$titleLineHeight: 24px !default;//标题字体行间距
+$titleFont: 12px !default; // 标题字体大小
+$titleHeight: 32px !default;//标题高度
+$titleLineHeight: 16px !default;//标题字体行间距
 $titleFontWeight: bold !default;//标题字号
-$tabLineHeight: 40px !default;
+$titleM: 0 0 8px 0 ;//标题margin
+$scrollbar-width: 10px;// 滚动条宽度
+$scrollbar-background:#F5F5F5;// 滚动条颜色
+$scrollbar-color:#555;// 滚动条颜色
 
 #{$containerId}{
   font-family: $fontF;
@@ -62,30 +66,30 @@ $tabLineHeight: 40px !default;
     /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
   ::-webkit-scrollbar
   {
-      width: 12px;
-      height: 12px;
-      background-color: #F5F5F5;
+      width: $scrollbar-width;
+      height: $scrollbar-width;
+      background-color: $scrollbar-background;
   }
 
   /*定义滚动条轨道 内阴影+圆角*/
   ::-webkit-scrollbar-track
   {
       -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-      border-radius: 10px;
-      background-color: #F5F5F5;
+      border-radius: $scrollbar-width / 2;
+      background-color: $scrollbar-background;
   }
 
   /*定义滑块 内阴影+圆角*/
   ::-webkit-scrollbar-thumb
   {
-      border-radius: 10px;
+      border-radius: $scrollbar-width / 2;
       -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-      background-color: #555;
+      background-color: $scrollbar-color;
   }
   // reset css end
   // public start
   .hide{
-    display: none;
+    display: none !important;
   }
   .active-tab-item{
       display:block!important;
@@ -169,10 +173,14 @@ $tabLineHeight: 40px !default;
         vertical-align: middle;
       }
       .title{
+        display:block;
+        overflow: hidden;
         font-size: $titleFont;
         line-height: $titleLineHeight;
         font-weight: $titleFontWeight;
-        height: 24px;
+        height: $titleHeight;
+        margin:$titleM;
+        text-overflow: ellipsis;
         &:hover{
           color:#f30;
           text-decoration: underline;
@@ -181,7 +189,7 @@ $tabLineHeight: 40px !default;
     }
   }
   .n256-news-info{
-    margin-top:14px;
+    //margin-top:14px;
     color:#999;
     line-height: 18px;
     font-size:12px;
@@ -232,8 +240,8 @@ $tabLineHeight: 40px !default;
     line-height:30px;
     text-align: center;
     cursor:pointer;
-    width:$newsListW;
-    float:left;
+    //width:$newsListW;
+    //float:left;
   }
   .fixed-position{
     position:fixed;
