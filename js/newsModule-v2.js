@@ -379,7 +379,7 @@ function NewsModule (params) {
   this.reloadTimes = params.reloadTimes || 3
   this.maxPage = params.maxPage || 10
   this.isShowTab = params.isShowTab === false ? false : true
-  this.baiduAdUrl = params.baiduAdUrl || 'ads/baiduAd.html'
+  this.baiduAdUrl = params.baiduAdUrl || './ads/baiduAd.html'
   this.topInstance = params.topInstance || 0
   // second add
   this.showSpace = params.showSpace || 0
@@ -467,6 +467,7 @@ function NewsModule (params) {
   } else if (this.changeTabWay === 2) {
     eventType = 'click'
   }
+  params.init && params.init(this.newsContainer)
   $l(this.target).find('.n256-news-tab').child().eq(0).trigger(eventType)
 }
 NewsModule.prototype = {

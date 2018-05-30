@@ -1,0 +1,36 @@
+$scrollbar-width: 8px !default;
+$scrollbar-height: 100% !default;
+$scrollbar-color: #555 !default;
+$scrollbar-background: #aaa !default;
+$scrollbar-hover-color: #444 !default;
+$scrollbar-top: 0 !default;
+$scrollbar-right: 0 !default;
+.scrollbar-bar{
+  width:$scrollbar-width;
+  background: $scrollbar-background;
+  height:$scrollbar-height;
+  top: $scrollbar-top;
+  right: $scrollbar-right;
+  position: absolute;
+  -moz-border-radius: $scrollbar-width / 2;
+  -ms-border-radius: $scrollbar-width / 2;
+  -o-border-radius: $scrollbar-width / 2;
+  -webkit-border-radius: $scrollbar-width / 2;
+  border-radius: $scrollbar-width / 2;
+  overflow: hidden;
+}
+.scrollbar-block{
+  width:100%;
+  background: $scrollbar-color;
+  position: absolute;
+  left:0;
+  top:0;
+  -moz-border-radius: $scrollbar-width / 2;
+  -ms-border-radius: $scrollbar-width / 2;
+  -o-border-radius: $scrollbar-width / 2;
+  -webkit-border-radius: $scrollbar-width / 2;
+  border-radius: $scrollbar-width / 2;
+  &:hover{
+    background: $scrollbar-hover-color;
+  }
+}
