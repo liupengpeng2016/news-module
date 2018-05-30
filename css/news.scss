@@ -18,10 +18,10 @@ $titleFont: 12px !default; // 标题字体大小
 $titleHeight: 32px !default;//标题高度
 $titleLineHeight: 16px !default;//标题字体行间距
 $titleFontWeight: bold !default;//标题字号
-$titleM: 0 0 8px 0 ;//标题margin
-$scrollbar-width: 10px;// 滚动条宽度
-$scrollbar-background:#F5F5F5;// 滚动条颜色
-$scrollbar-color:#555;// 滚动条颜色
+$titleM: 0 0 8px 0 !default;//标题margin
+$scrollbar-width: 10px !default;// 滚动条宽度
+$scrollbar-background:#F5F5F5 !default;// 滚动条背景颜色
+$scrollbar-color:#555 !default;// 滚动条颜色
 
 #{$containerId}{
   font-family: $fontF;
@@ -168,7 +168,6 @@ $scrollbar-color:#555;// 滚动条颜色
       line-height: nth($singleImgSize, 2);
       .content{
         display:inline-block;
-        vertical-align: center;
         line-height: 1;
         vertical-align: middle;
       }
@@ -180,7 +179,10 @@ $scrollbar-color:#555;// 滚动条颜色
         font-weight: $titleFontWeight;
         height: $titleHeight;
         margin:$titleM;
-        text-overflow: ellipsis;
+        text-overflow:ellipsis;
+        display:-webkit-box;
+        -webkit-box-orient:vertical;
+        -webkit-line-clamp:2;
         &:hover{
           color:#f30;
           text-decoration: underline;

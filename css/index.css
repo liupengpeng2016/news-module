@@ -111,7 +111,10 @@
       font-weight: bold;
       height: 32px;
       margin: 0 0 8px 0;
-      text-overflow: ellipsis; }
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2; }
       #n256-news-container .n256-news-item-singleImg .n256-news-content .title:hover {
         color: #f30;
         text-decoration: underline; }

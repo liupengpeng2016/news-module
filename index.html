@@ -7,60 +7,21 @@
   <link rel="stylesheet" href="css/index.css">
   <title>Document</title>
   <style>
-  #n256-news-container{
-       }
-       .active-tab {
-          color:#3097fd;
-        }
-        .n256-news-tab span{
-          width:100px;
-          line-height: 40px;
-          padding:0 25px;
-          font-size: 15px;
-        }
-        #n256-news-container .n256-tab-item{
-          width: 250px;
-        }
-  #n256-news-container .n256-tab-item{
-    width: 250px;
-  }
-  #n256-news-container .n256-news-item-singleImg, #n256-news-container .n256-news-item-multiImg, #n256-news-container .n256-news-item-bigImg{
-    padding: 20px 20px 20px 10px;
-    margin: 0;
-  }
-  #n256-news-container .n256-news-item-singleImg .n256-news-img{
-    width: 90px;
-    height: 60px;
-  }
-  #n256-news-container .n256-news-item-singleImg .n256-news-content{
-    font-size: 14px;
-    height: 60px;
-    line-height: 0
-  }
-    p{
+   .active-tab {
+      color:#3097fd;
+    }
+    .n256-news-tab span{
+      width:100px;
       line-height: 40px;
+      padding:0 25px;
+      font-size: 15px;
     }
-    #n256-news-container .n256-news-item-singleImg .n256-news-content .title{
-      font-size: 14px;
-      height: 27px;
-      line-height: 14px;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      display:-webkit-box;
-      -webkit-box-orient:vertical;
-      -webkit-line-clamp:2;
-    }
-    #n256-news-container .n256-news-info{
-      margin-top: 13px;
-    }
-    .pic_container{
-      width: 250px;
-    }  </style>
+  </style>
 </head>
 <body>
   <div class='n256-news-container' id='n256-news-container'></div>
   <script type="text/javascript" language="javascript" charset="utf-8"  src="//static.mediav.com/js/mvf_pm_slider.js"></script>
-  <script src='js/newsModule.js' charset='utf-8'></script>
+  <script src='js/newsModule-v2.js' charset='utf-8'></script>
   <script>
   new NewsModule ({
         containerId: 'n256-news-container',
@@ -73,7 +34,7 @@
         adMode: 1,
         forceStretchAdImg: true,
         forceStretchNewsImg: true,
-        adConfig: {baidu:1},
+        adConfig: {baidu:0.3, 360:0.7},
         newsRadio: 3,
         newsNumPer:21,
         //changeTabWay: 2,
@@ -81,8 +42,12 @@
         // isShow360cc: true,
         actionAtBottom: 'load',
         isShowTab: true,
+        hideInfo: true,
+        maxPage:6,
+        loadPage: 7,
         //showSpace: 80,
         newsMode: 1,
+        simpleInfo:true,
         //scrollTimes: 8,
         //scrollType: 'interval',
         tabData: [['推荐', 'tuijian'], ['游戏', 'youxi'], ['科技', 'keji']],
