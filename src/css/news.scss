@@ -19,6 +19,8 @@ $titleHeight: 32px !default;//标题高度
 $titleLineHeight: 16px !default;//标题字体行间距
 $titleFontWeight: bold !default;//标题字号
 $titleM: 0 0 8px 0 !default;//标题margin
+$check-btn-fontsize: 12px !default;//查看更多按钮字体大小
+$scrollbar-style-switch: false !default;// 是否开启css3调节webkit内核滚动条样式
 $scrollbar-width: 10px !default;// 滚动条宽度
 $scrollbar-background:#F5F5F5 !default;// 滚动条背景颜色
 $scrollbar-color:#555 !default;// 滚动条颜色
@@ -63,6 +65,7 @@ $scrollbar-color:#555 !default;// 滚动条颜色
     -webkit-transform: scale(1.2);
     transform: scale(1.2);
   }
+  @if ($scrollbar-style-switch) {
     /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
   ::-webkit-scrollbar
   {
@@ -86,6 +89,7 @@ $scrollbar-color:#555 !default;// 滚动条颜色
       -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
       background-color: $scrollbar-color;
   }
+  }
   // reset css end
   // public start
   .hide{
@@ -101,28 +105,23 @@ $scrollbar-color:#555 !default;// 滚动条颜色
     margin-top:10px;
     border-radius:5px;
   }
-
   // public end
   .n256-news-tab{
-    // overflow: hidden;
-    // background: white;
-    // line-height: $tabLineHeight;
-    // width:100%;
-    // color:#666;
-    // font-size: 20px;
     border-bottom: 1px solid $borderC;
     span{
       cursor: pointer;
     }
     .tab-icon{
-      // height:22px;
-      // vertical-align: middle;
-      // margin-right:5px;
-      // margin-top:-4px;
       &:hover{
         transform: none;
       }
     }
+  }
+  .refresh-btn{
+    line-height: 40px;
+    margin:0 30px;
+    cursor: pointer;
+    float:right;
   }
   .n256-tab-item-container{
     position:relative;
@@ -130,7 +129,11 @@ $scrollbar-color:#555 !default;// 滚动条颜色
   .n256-tab-item{
       display:none;
       overflow: hidden;
-      width:$newsListW;
+      .news-item, .ad-baidu, .ad-360{
+        overflow: hidden;
+        float:left;
+        width:$newsListW;
+      }
   }
   .n256-news-item-singleImg, .n256-news-item-multiImg, .n256-news-item-bigImg{
     display: block;
@@ -214,8 +217,8 @@ $scrollbar-color:#555 !default;// 滚动条颜色
         color:#f30;
         text-decoration: underline;
       }
-      font-weight: bold;
-      font-size: 20px;
+      font-weight: $titleFontWeight;
+      font-size: $titleFont;
       margin-bottom:12px;
       display: block;
       padding:0;
@@ -235,6 +238,16 @@ $scrollbar-color:#555 !default;// 滚动条颜色
           margin:auto;
           position: absolute;
         }
+        .check-info{
+          line-height:nth($multiImgSize, 2);
+          font-size: $check-btn-fontsize;
+          display:block;
+          text-align: center;
+          &:hover{
+            color:#f30;
+            text-decoration: underline;
+          }
+        }
       }
     }
   }
@@ -242,15 +255,12 @@ $scrollbar-color:#555 !default;// 滚动条颜色
     line-height:30px;
     text-align: center;
     cursor:pointer;
-    //width:$newsListW;
-    //float:left;
   }
   .fixed-position{
     position:fixed;
     bottom:0;
   }
   .n256-nonews-notice {
-    width:$newsListW;
     a{
       display:block;
       line-height:30px;
@@ -260,8 +270,8 @@ $scrollbar-color:#555 !default;// 滚动条颜色
   .n256-news-item-bigImg {
     display:block;
     .title{
-      font-weight: bold;
-      font-size: 20px;
+      font-weight: $titleFontWeight;
+      font-size: $titleFont;
       margin-bottom:12px;
       display: block;
       padding:0;

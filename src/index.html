@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/scrollbar.css">
+  <title>Document</title>
+  <style>
+   .active-tab {
+      color:#3097fd;
+    }
+    .n256-news-tab span{
+      width:100px;
+      line-height: 40px;
+      padding:0 25px;
+      font-size: 15px;
+    }
+    p{
+      height:30px;
+    }
+  </style>
+</head>
+<body>
+  <div id='test'></div>
+  <script type="text/javascript" language="javascript" charset="utf-8"  src="//static.mediav.com/js/mvf_pm_slider.js"></script>
+  <script src='js/newsModule-v2.js' charset='utf-8'></script>
+  <script src='js/scrollbar.js'></script>
+  <script>
+  new NewsModule ({
+    containerId: 'test',
+          adsenseid: 10002001,
+          newsAdsenseid: 100020,
+          dongfangNewsId: '03090',
+          adMode: 1,
+          forceStretchAdImg: true,
+          forceStretchNewsImg: true,
+          adConfig: {baidu:1},
+          tabData: [['头条', 'toutiao'],['电影', 'dianying'], ['电视', 'dianshi'], ['娱乐', 'yule']],
+          newsRadio: 3,
+          newsNumPer:18,
+          newsNumFirst:20,
+          //changeTabWay: 2,
+          //_360ccp: 'bottom',
+          // isShow360cc: true,
+          actionAtBottom: 'load',
+          //isShowTab: false,
+          hideInfo: false,
+          maxPage:3,
+          loadPage: 4,
+          //showSpace: 80,
+          newsMode: 3,
+          simpleInfo:true,
+          isShowFourImg:true,
+          containerHeight: 500,
+          baiduAdIds:{
+            1: {
+              id: 'u3433620',
+              precent: 0.5
+            },
+            3: {
+              id: 'u3468600',
+              precent: 0.5
+            }
+          },
+          //newsOrigin: 'yingshi',
+          //baiduAdMode: '134',
+          showRefreshBtn: true,
+          adInsertWay: 'order'
+      })
+  </script>
+</body>
+</html>

@@ -25,6 +25,9 @@
       this.setScrollbarH()
       this.bindEvent()
     },
+    refresh: function () {
+      this.scrollHandle && this.scrollHandle()
+    },
     dHeight: function () {
       return this.target.scrollHeight
     },
@@ -117,6 +120,7 @@
         scrollHandle()
       })
       this.on(this.target, 'DOMSubtreeModified', scrollHandle)
+      this.scrolHandle = scrollHandle
     }
   }
   window.Scrollbar = Scrollbar

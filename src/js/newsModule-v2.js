@@ -214,14 +214,15 @@ DomOperate.prototype = {
     var clientHeight1, clientHeight2
     var offsetT1, offsetT2
     var isInView = false
-    scrollT1 = this[0].offsetParent.scrollTop
-    clientHeight1 = this[0].offsetParent.clientHeight
-    offsetT1 = this[0].offsetTop
     scrollT2 = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
     clientHeight2 = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
     offsetT2 = this.offset().top
 
     if (hasHeight) {
+      scrollT1 = this[0].offsetParent.scrollTop
+      clientHeight1 = this[0].offsetParent.clientHeight
+      offsetT1 = this[0].offsetTop
+
       if (scrollT1 + clientHeight1 >= offsetT1 + showSpace && scrollT2 + clientHeight2 >= offsetT2 -  scrollT1 + showSpace) {
         isInView = true
       }
@@ -258,7 +259,10 @@ var $lMethods = {
     if (obj.method === 'jsonp') {
       var script = document.createElement('script')
       script.onerror = script.onabort = function () {
-        obj.error && obj.error()
+        if (!script.loaded) {
+          this.loaded = true
+          obj.error && obj.error()
+        }
       }
       var jsonp = obj.jsonp || 'callback'
       var jsonpCallback = obj.jsonpCallback || 'n' + Math.random().toString(26).slice(2)
@@ -270,14 +274,13 @@ var $lMethods = {
       script.src = obj.url + '?' + paramsStr + jsonpStr
       document.getElementsByTagName('head')[0].appendChild(script)
       // jsonp超时处理
-      if (obj.timeout) {
-        setTimeout(function () {
-          if (!script.loaded) {
-            window[jsonpCallback] = null
-            obj.error && obj.error()
-          }
-        }, obj.timeout)
-      }
+      setTimeout(function () {
+        if (!script.loaded) {
+          window[jsonpCallback] = null
+          script.loaded = true
+          obj.error && obj.error()
+        }
+      }, obj.timeout || 3000)
     } else {
       if (window.XMLHttpRequest) {
         xml = new XMLHttpRequest()
@@ -298,7 +301,7 @@ var $lMethods = {
             obj.error && obj.error()
           }
         }
-      xml.send(obj.method === 'post' ? paramsStr : '')
+      xml.send(obj.method === 'post' ? paramsStr : null)
       }
     }
   },
@@ -401,18 +404,35 @@ function NewsModule (params) {
   this.scrollOptimizeMethod = params.scrollOptimizeMethod || 'times'
   this.hideInfo = params.hideInfo && true
   this.scrollPosition = params.scrollPosition || 'lastPosition'
+  // third add
+  this.isShowFourImg = params.isShowFourImg && true
+  this.isShowBottomNotice = params.isShowBottomNotice === false ? false : true
+  this.firstAdPosition = params.firstAdPosition || 2
+  this.update = params.update
+  // fourth add
+  this.baiduAdIds = params.baiduAdIds || {1: {id: this.baiduAdId, precent: 1}}
+  this.baiduccId = params.baiduccId || ''
+  this.isShowBaiducc = params.isShowBaiducc && true
+  this.baiduccPosition = params.baiduccPosition || 'top'
+  // fiveth add
+  this.loadDelay = params.loadDelay || 200
+  this.loadInstance = params.loadInstance || 300
+  //sixth add
+  this.adInsertWay = params.adInsertWay || 'ratio'
+  this.showRefreshBtn = params.showRefreshBtn && true
   // computed params
   this.newsBuffer = {nurl: [], nindex: []}
   this.target = $l('#' + this.containerId)[0]
   this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRadio + 1)
   this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRadio + 1)
+  this.hash = Math.random().toFixed(6).slice(2)
   this.state = {
     activeIndex: 0,
     pagesList: [],
     adsenseidList:[],
     scrollPosition: []
   }
-  // params validate
+  // 参数校验
   if (!params.adsenseid) {
     console.error('adsenseid is required')
   }
@@ -422,33 +442,55 @@ function NewsModule (params) {
   if (!this.containerId) {
     console.error('containerId is required')
   }
-  if (!params.baiduAdId) {
-    console.error('baiduAdId is required')
-  }
   if (!params.dongfangNewsId) {
     console.error('dongfangNewsId is required')
   }
-  if (!params._360ccId) {
+  if (this.isShow360cc && !params._360ccId) {
     console.error('_360ccId is required')
   }
-  if (!params._360adId) {
+  if (this.isShowBaiducc && !params.baiduccId) {
+    console.error('baiduccId is required')
+  }
+  if (this.adConfig['360'] && !params._360adId) {
     console.error('_360adId is required')
+  }
+  if (this.adConfig.baidu && !(params.baiduAdId || params.baiduAdIds['1'] || params.baiduAdIds['3'] || params.baiduAdIds['4'])) {
+    console.error('baiduAdIds is required')
+  }
+  // 兼容性优化
+  // ie8及以下三图广告换成单图广告
+  if ($l.iev() <= 8) {
+    delete this.baiduAdIds['3']
+    delete this.baiduAdIds['4']
+    this.baiduAdIds['1'].precent = 1
   }
   // 初始化dom结构
   if (this.containerHeight) {
     $l(this.target).addClass('n256-tab-title-fixed')
   }
-  if (this._360ccp === 'top' && this.isShow360cc) {
+  // 顶部360橱窗
+  if (this.isShow360cc && this._360ccp === 'top') {
     this.create360cc()
   }
+  // 顶部百度橱窗
+  if (this.isShowBaiducc && this.baiduccPosition === 'top') {
+    this.createBaiducc()
+  }
+  // 创建tab栏
   this.createTab()
+  // 创建信息流容器
   this.createNewsContainer()
   // dom缓存
   this.newsContainer = $l(this.target).find('.n256-tab-item-container')[0]
-  if (this._360ccp === 'bottom' && this.isShow360cc) {
+  // 底部360橱窗
+  if (this.isShow360cc && this._360ccp === 'bottom') {
     this.create360cc()
   }
-  if (this.actionAtBottom === 'load') {
+  // 底部百度橱窗
+  if (this.isShowBaiducc && this.baiduccPosition === 'bottom') {
+    this.createBaiducc()
+  }
+  if (this.actionAtBottom === 'load' && this.isShowBottomNotice === true) {
     this.createLoadNotice()
     this.createNoNewsNotice()
   }
@@ -468,8 +510,34 @@ function NewsModule (params) {
     eventType = 'click'
   }
   params.init && params.init(this.newsContainer)
-  $l(this.target).find('.n256-news-tab').child().eq(0).trigger(eventType)
+  // 信息流到达屏幕底部一定距离再第一次请求数据
+  var _this = this
+  var firstPageLoaded = false
+  function firstLoadHandler () {
+    if (firstPageLoaded) return
+    var container = $l('#' + _this.containerId)
+    var clienty = container.offset().top - (window.pageYOffset || document.documentElement.scrollTop)
+    var loadp = (window.innerHeight || document.documentElement.clientHeight) + _this.loadInstance
+    if( clienty <= loadp) {
+      $l(_this.target).find('.n256-news-tab').child().eq(0).trigger(eventType);
+      firstPageLoaded = true
+      if (window.addEventListener) {
+        window.removeEventListener('scroll', firstLoadHandler)
+      } else {
+        window.detachEvent('onscroll', firstLoadHandler)
+      }
+    }
+  }
+  if (window.addEventListener) {
+    window.addEventListener('scroll', firstLoadHandler)
+  } else {
+    window.attachEvent('onscroll', firstLoadHandler)
+  }
+  setTimeout(function() {
+    firstLoadHandler()
+  }, this.loadDelay)
 }
+// 信息流对象原型
 NewsModule.prototype = {
   constructor: NewsModule,
   createLoadNotice: function () {
@@ -480,7 +548,7 @@ NewsModule.prototype = {
     div.innerHTML = '加载中...'
     p.className = 'n256-load-more-btn hide btn'
     // p.id = 'n256-load-more-btn'
-    p.innerHTML = '点击重新加载'
+    p.innerHTML = '点击加载更多'
     this.newsContainer.appendChild(div)
     this.newsContainer.appendChild(p)
   },
@@ -488,13 +556,25 @@ NewsModule.prototype = {
     var div = document.createElement('div')
     var id = 'n256' + Math.random().toString(26).slice(0, 10)
     var ccid = this._360ccId
+    var script = document.createElement('script')
+    script.src = '//static.mediav.com/js/mvf_pm_slider.js'
+    script.setAttribute('charset', 'utf-8')
     div.id = id
     this.target.appendChild(div)
-    setTimeout(function () {
+    script.onload = function () {
       var obj = {"w":280,"showid": ccid,"rshowid": ccid,"inject":"inlay","layout":"magicCubeScene","style":"magicCube","row":"2","line":"2"}
       obj.placeholderId = id
       typeof BANNER_SLIDER != 'undefined' && BANNER_SLIDER(obj);
-    }, 0)
+    }
+    document.body.appendChild(script)
+  },
+  createBaiducc: function () {
+    var div = document.createElement('div');
+    var iframeId ='n256' + Math.random().toString(16).slice(2)
+    var adId = this.baiduccId;
+    div.className = 'baiducc'
+    div.innerHTML = '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + adId + '#' + iframeId + '"/>'
+    this.target.appendChild(div)
   },
   createNoNewsNotice: function () {
     var div = document.createElement('div')
@@ -525,6 +605,7 @@ NewsModule.prototype = {
         '<li><img src="' + item.miniimg[0].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
         '<li><img src="' + item.miniimg[1].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
         '<li><img src="' + item.miniimg[2].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
+        (this.isShowFourImg ? '<li>' + (item.miniimg[3] ? '<img src="' + item.miniimg[3].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '">' : '<span class="check-info">查看详情>></span>') + '</li>' : '') +
       '</ul>' +
       (this.hideInfo ? '' :
       '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
@@ -581,17 +662,49 @@ NewsModule.prototype = {
     }
     return ad
   },
-  baiduAdTemplate: function (num) {
-    var iframeId ='n256' + Math.random().toString(16).slice(2)
-    this.adStatistics(1, null, null, num, 1002)
-    return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + this.baiduAdId + '#' + iframeId + '"/>'
-  },
+  baiduAdTemplate: (function () {
+    var order = 0, ids = [];
+    return function (num) {
+      if (!ids.length) {
+        for (var i in this.baiduAdIds) {
+          if (this.baiduAdIds.hasOwnProperty(i)) {
+            ids.push(this.baiduAdIds[i].id)
+          }
+        }
+        if (ids.length === 0) {
+          ids.push(this.baiduAdId)
+        }
+      }
+      var iframeId ='n256' + Math.random().toString(16).slice(2)
+      var result = Math.random();
+      var min = 0;
+      var adId = '';
+      if (this.adInsertWay === 'ratio') {
+        for(var i in this.baiduAdIds) {
+          if (this.baiduAdIds.hasOwnProperty(i)) {
+            if (result >= min && result < this.baiduAdIds[i].precent + min) {
+              adId = this.baiduAdIds[i].id;
+              break;
+            }
+            min += this.baiduAdIds[i].precent
+          }
+        }
+        adId = adId || this.baiduAdId
+      } else if (this.adInsertWay === 'order') {
+        adId = ids[order]
+        order++
+        order = order > ids.length - 1 ? 0 : order
+      }
+      this.adStatistics(1, null, null, num, 1002)
+      return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + adId + '#' + iframeId + '"/>'
+    }
+  })(),
   get360Ad: (function () {
     var uid = Math.random().toString(26).slice(2)
     var reqtimes = 1
     return function (impct, num, callback) {
       var _this = this
-      window.isNewsLoading = true
+      window['isNewsLoading' + this.hash] = true
       this.adStatistics(1, null, null, num, 1001)
       $l.ajax({
         method: 'jsonp',
@@ -606,15 +719,15 @@ NewsModule.prototype = {
         },
         jsonp: 'jsonp',
         jsonpCallback: 'n360ad',
-        url: 'http://show.g.mediav.com/s',
+        url: '//show.g.mediav.com/s',
         success: function (res) {
           _this.adStatistics(2, null, null, num, 1001)
-          window.isNewsLoading = false
+          window['isNewsLoading' + _this.hash] = false
           callback && callback(res.ads)
           reqtimes++
         },
         error: function () {
-          window.isNewsLoading = false
+          window['isNewsLoading' + _this.hash] = false
           callback && callback([])
         }
       })
@@ -649,14 +762,14 @@ NewsModule.prototype = {
         $l(this.target).find('.n256-tab-item')[this.state.activeIndex].innerHTML = ''
       }
       function getPosition (next) {
-        var position = $l.cookie('n256Position') || ''
-        if ($l.iev() <= 8 || !isGetPosition) position = ' '
-        if (position) {
+        var position;
+        position = $l.cookie('n256Position') || ''
+        if (!isGetPosition || position) {
           next && next(position)
         } else {
           $l.ajax({
             method: 'jsonp',
-            url: 'http://guess.union2.50bang.org/adsapi/ci',
+            url: '//guess.union2.50bang.org/adsapi/ci',
             success: function (res) {
               var position = res.c
               next && next(position)
@@ -671,15 +784,21 @@ NewsModule.prototype = {
           isGetPosition = false
         }
       }
-      function getNews (position) {
+      function fetchNews (position) {
         _this.newsStatistics(1)
-        window.isNewsLoading = true
+        window['isNewsLoading' + _this.hash] = true
         var page = _this.state.pagesList[_this.state.activeIndex] + 1
         var newsnum = isFirst ? _this.newsNumFirst : _this.newsNumPer
         isFirst = false
+        var url = ''
+        switch (_this.newsOrigin) {
+          case 'dongfang': url = '//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02';break;
+          case 'yingshi': url = '//2345yingshi.dftoutiao.com/newsapi_pc/newsjp02';break;
+          default: url = '//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02';
+        }
         $l.ajax({
           method: 'jsonp',
-          url: 'http://2345jsllq.dftoutiao.com/newsapi_pc/newsjp02',
+          url: url,
           params: {
             type: _this.tabData[_this.state.activeIndex][1],
             startkey: startkey,
@@ -691,7 +810,6 @@ NewsModule.prototype = {
             position: position,
             newsnum: newsnum
           },
-          timeout: 2000,
           success: function (res) {
             // api stauts handle
             _this.state.pagesList[_this.state.activeIndex]++
@@ -700,22 +818,23 @@ NewsModule.prototype = {
             idx += res.data.length
             // other mession
             _this.newsStatistics(2)
-            window.isNewsLoading = false
+            window['isNewsLoading' + _this.hash] = false
             callback && callback(res.data)
             // // 重置新闻排行距离底部距离
           },
           error: function () {
-            window.isNewsLoading = false
+            window['isNewsLoading' + _this.hash] = false
             error && error()
           }
         })
       }
-      getPosition(getNews)
+      getPosition(fetchNews)
     }
   })(),
   getNews: (function () {
     var times = 0
     return function (isReset) {
+      //if(this.target.offsetWidth === 0) return
       var _this = this
       this.getDongfangNews(function (res) {
         if (!res && !res.length) {
@@ -734,14 +853,15 @@ NewsModule.prototype = {
         }
       }, function () {
         times++
-        // 首次请求失败隐藏
-        if (_this.state.pagesList[0] <= 0) {
-          _this.target.style.display = 'none'
-          return
-        }
+        // // 首次请求失败隐藏
+        // if (_this.state.pagesList[0] <= 0) {
+        //   _this.target.style.display = 'none'
+        //   return
+        // }
         if (times >= _this.reloadTimes) {
           times = 0
-          return _this.showNonewsNotice(true)
+          _this.showNonewsNotice(true)
+          return
         }
         setTimeout(function () {
           _this.getNews()
@@ -764,6 +884,9 @@ NewsModule.prototype = {
       this.state.adsenseidList.push(this.adsenseid)
       this.state.scrollPosition.push(0)
     }
+    if (this.showRefreshBtn) {
+      tabContent += '<p class="refresh-btn">换一换</p>'
+    }
     var div = document.createElement('div')
     // div.id = 'n256-news-tab'
     div.className = 'n256-news-tab' + (this.isShowTab ? '' : ' hide')
@@ -781,6 +904,11 @@ NewsModule.prototype = {
       newsItemContainer.appendChild(div)
     }
   },
+  refresh: function () {
+    location.href = '#' + this.containerId
+    this.getNews(true)
+    this.showBottomNotice(false)
+  },
   fillNews: function (newsData, isClear) {
     var newsModule = this
     var adNum360 = 0
@@ -790,7 +918,7 @@ NewsModule.prototype = {
     for (var i = 0; i < newsData.length; i++) {
       // 选取广告类型
       var ad = ''
-      if ((i === 0 || i % this.newsRadio === 0) && this.showAd) {
+      if ((i === this.firstAdPosition - 2 || (i - this.firstAdPosition - 1) % this.newsRadio === 0 && i + 1 > this.firstAdPosition) && this.showAd) {
         var result = Math.random()
         var percent = 0
         for (var k in this.adConfig) {
@@ -835,6 +963,7 @@ NewsModule.prototype = {
     }
     var div = document.createElement('div')
     $l(div).attr('data-page', this.state.pagesList[this.state.activeIndex])
+    $l(div).addClass('page-container')
     div.innerHTML = content
     newsContainer.appendChild(div)
     // 填充百度广告
@@ -877,6 +1006,10 @@ NewsModule.prototype = {
       setTimeout(function () {
         newsModule.checkShow(null, true)
       }, 600)
+      setTimeout(function () {
+        newsModule.update && newsModule.update()
+        //$l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex].paddingBottom = '0px'
+      }, 0)
     })
   },
   showNonewsNotice: function (isShow) {
@@ -896,7 +1029,7 @@ NewsModule.prototype = {
   showBottomNotice: function (isShow) {
     var loadNotice = $l(this.target).find('.n256-news-loadnotice')
     var text = isShow ? '已经到底啦，点击重新加载' : '加载中...'
-    loadNotice[0].innerHTML = text
+    loadNotice[0] && (loadNotice[0].innerHTML = text)
   },
   _360Statistics: function (urlList) {
     function send (url) {
@@ -1012,8 +1145,11 @@ NewsModule.prototype = {
     })
     // 点击 到底了 按钮
     $l(newsModule.target).find('.n256-news-loadnotice').on('click', function () {
-      newsModule.getNews(true)
-      newsModule.showBottomNotice(false)
+      newsModule.refresh()
+    })
+    // 点击刷新按钮
+    $l(newsModule.target).find('.refresh-btn').on('click', function () {
+      newsModule.refresh()
     })
     // tab切换
     $l(newsModule.target).find('.n256-news-tab').on(newsModule.changeTabWay === 1 ? 'mouseover' : 'click', 'span', clickTabHandle)
@@ -1053,7 +1189,7 @@ NewsModule.prototype = {
       }
       if (isvisited) {
         return
-      } else if (!window.isNewsLoading) {
+      } else if (!window['isNewsLoading' + newsModule.hash]) {
         newsModule.getNews(true)
         $l(this).attr('isvisited', 'true')
       }
@@ -1073,23 +1209,23 @@ NewsModule.prototype = {
          clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
        }
        var spaceToBottom = docHeight - Math.ceil(scrollTop + clientHeight)
-       if (!scrollTop) {
-         return
-       }
        // 记录滚动位置
        newsModule.state.scrollPosition[newsModule.state.activeIndex] = scrollTop
        // 滚动到底部固定
        if (newsModule.actionAtBottom === 'fixed') {
-         if (spaceToBottom <= newsModule.topInstance) {
-           newsModule.newsContainer.style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
-         } else {
-           newsModule.newsContainer.style.paddingBottom = '0px'
-         }
          var target = $l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex]
          var targetH = target.offsetHeight
          var offsetT = $l(newsModule.newsContainer).offset().top
          var scrollT = window.pageYOffset || (document.documentElement || document.body).scrollTop
          var clientH = window.innerHeight || (document.documentElement || document.body).clientHeight
+
+         // 底部有遮挡物时平滑上提
+         if (spaceToBottom <= newsModule.topInstance) {
+           //newsModule.newsContainer.style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+           $l(target)[0].style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+         } else {
+           $l(target)[0].style.paddingBottom = '0px'
+         }
          if (targetH + offsetT - scrollT <= clientH) {
            $l(target).addClass('fixed-position')
          } else {
@@ -1107,7 +1243,7 @@ NewsModule.prototype = {
          }
          // 加载下一页
          if (spaceToBottom <= newsModule.instance) {
-          if (!window.isNewsLoading) {
+          if (!window['isNewsLoading' + newsModule.hash]) {
             newsModule.getNews()
           }
         }
@@ -1159,7 +1295,6 @@ NewsModule.prototype = {
       var adsenseid = $l(this).attr('data-num')
       newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
     })
-
     // 点击新闻
     $l(newsModule.target).on('click', '.news-item', function (evt) {
       if (evt.button === 2) return
@@ -1226,7 +1361,7 @@ NewsModule.prototype = {
         var baiduAd = container.find('.ad-baidu')
         for (var i = 0; i < newsList.length; i++) {
           var isvisited = $l(newsList[i]).attr('isvisited')
-          if ($l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited) {
+          if (!isvisited && $l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace)) {
             // 参数处理
             var nindex = 0
             var nurl = $l(newsList[i]).attr('data-url')
