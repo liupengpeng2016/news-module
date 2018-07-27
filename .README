@@ -1,111 +1,117 @@
 一、代码svn地址：
 /meigong.2345.com/e2.2345.com/news-module/
 
-二、使用步骤：
-使用前准备：文件夹及其中的文件：ads/baiduAd.html， js/newsModule-v2.js， css/news.scss，默认放置在使用页面的同一目录下，如果需要更改位置，注意修改引入路径。
-
-1. 在html页面head中引入 news.css, 该文件经过news.scss文件配置变量后编译而来，注意：为统一模块的使用，方便维护和优化，需要更改样式时不要更改scss源文件，调整样式可参考下面的样式调整说明。
+二、相关说明
+兼容性：测试测到ie7，理论上兼容到ie6；
+使用时需要的文件： ads/baiduAd.html, js/newsModule-v2.js， css/news.scss，默认放置在使用页面的同一目录下，如果需要更改位置，注意修改引入路径(修改baiduAd.html文件位置时要修改配置参数baiduAdUrl)；
+为满足完全控制滚动条样式需求，附带模拟滚动条插件，见附录2；
+三、使用步骤：
+1. 在html页面中引入 news.css
 
 <link rel="stylesheet" href="css/news.css">
-1.1 CSS 样式调整说明：
-下面是news.scss中暴露出来的变量及其默认值，@import引入前按自己需要定义对应变量即可；
-如果自己要更改的目标通过调整以下变量无法实现，可联系该模块维护人员，进行更改或配置统一接口。
-注意： 若一个页面配置有多个信息流模块，则每个模块都需要编译一份对应的css文件引入html；
+说明：
 
-$containerId: #n256-news-container; //容器id，必填；
-$containerW:auto; // 容器宽
-$borderC: #d8dbe5; // 容器边框颜色
-$fontF: "微软雅黑" ; // 容器内字体类型
-$newsListW:auto; // 每个新闻的宽度
-$newsM: 0px 0px 0px 20px; // 每个新闻的margin
-$newsP: 20px 0px 20px 0px; // 每个新闻的padding
-$singleImgSize: 180px 120px; // 单图新闻中图片的宽高
-$singleImgM: 0 10px 0 0; //单图新闻中图片的margin
-$multiImgSize: 180px 120px; // 多图新闻中图片的宽高
-$multiImgM: 0px 10px 12px 0px; // 多图新闻中图片的margin
-$baiduAdP: 0 0 0 0; // 百度广告padding
-$titleFont: 12px; // 标题字体大小
-$titleHeight: 32px;//标题高度
-$titleLineHeight: 16px;//标题字体行间距
-$titleFontWeight: bold;//标题字号
-$titleM: 0 0 8px 0 ;//标题margin
-$scrollbar-width: 10px;// 滚动条宽度
-$scrollbar-background:#F5F5F5;// 滚动条背景颜色
-$scrollbar-color:#555;// 滚动条颜色
-tab样式调整说明：
-编写以下class类可调整相应样式：
-.n256-news-tab span：tab没选中时的样式
-.active-tab：tab选中时的样式
-
+ news.css文件经过news.scss文件配置变量后编译而来，编译时容器id变量必需设置；
+ 为统一模块的使用，方便维护和优化，避免未知错误，不要更改scss源文件，调整样式可参考附录1。
+ 若一个页面配置有多个信息流模块，则每个模块都需要编译一份对应的css文件引入html。
 2. 在html页面需要插入信息流的地方插入以下标签：
 
- <div class='n256-news-container' id="必填"></div>
+ <div id="容器id（必填）"></div>
 3. 在html页面底部引入以下js：
 
-<script type="text/javascript" language="javascript" charset="utf-8" src="//static.mediav.com/js/mvf_pm_slider.js"></script>
- <script src="js/newsModule-v2.js" charset="utf-8"></script>
-注意：现阶段newsModule.js线上地址为：
-http://e2.2345.com/news/module2/js/newsModule.js
-推荐使用线上js地址。
+ <script type='text/javascript' src="newsModule-v2.js" charset="utf-8"></script>
+注意：推荐使用线上js地址（避免反复更新），现阶段newsModule.js线上地址为：
+http://e2.2345.com/news/news-module/js/newsModule-v2.js
 
 4. 使用js创建并配置信息流模块
 
 new NewsModule(params)
 参数说明：
 
-params为一对象，用于配置信息流模块，各属性详情如下所述(加粗为必填项)：
+params为一对象，用于配置信息流模块，各属性详情如下所述(加粗项多为必填项)：
 
-4.1 统计id类（所有统计id类由产品提供，不可随意填写）
+4.1 数据id类（所有数据id类由产品提供，不可随意填写）
 
 newsAdsenseid：必填，int,新闻模块的广告位id（猜你喜欢统计接口外层参数adsenseid）；
 adsenseid:必填，int,子广告位ID, 页面的第一个广告id（猜你喜欢统计接口内层参数adsenseid）；
-_360adId:必填，str, 360广告id（360广告接口参数中的showid）；
-_360ccId:必填，str, 360橱窗id（360橱窗请求参数中的showid）；
-baiduAdId:必填，str, 百度广告id（百度广告请求参数中的id）；
 dongfangNewsId:必填，str, 东方新闻id（东方新闻接口参数中的qid）；
+_360adId:str, 360广告id（360广告接口参数中的showid），使用360广告时必填；
+_360ccId:str, 360橱窗id（360橱窗请求参数中的showid），使用360橱窗时必填；
+baiduAdIds: obj,使用百度广告时必填，百度广告id,key表示图片数量，按需填写，value表示对应id及比例，各比例和需为1，当参数adInsertWay为’order’时, precent将失效；
+例： {
+      1: {
+        id: 'u3423033',
+        precent: 0.3
+      },
+      3: {
+        id: 'u032058',
+        precent: 0.3
+      },
+      4: {
+        id: 'u565406',
+        precent: 0.4
+      }
+    }
+baiduccId: str, 百度橱窗id，使用百度橱窗时必填。
 4.2 全局配置
 
 containerId:必填，str, 容器的id，用于区分同一页面上不同信息流模块；
-tabData: 选填，array,新闻tab栏数据，二维数组，每个数组元素的第一个表示tab文字，第二个表示接口id或type字段值，可参考接口文档, 第三个值可省略，表示icon地址，默认：[[‘头条’, ‘toutiao’]]；
+tabData: 选填，array,新闻tab栏数据，二维数组，每个数组元素的第一个表示tab文字，第二个表示接口type字段值，可参考接口文档, 第三个值可省略，表示icon地址，默认：[[‘头条’, ‘toutiao’]]；
+type可选值：
+toutiao（头条）、shehui（社会）、guonei（国内）、guoji（国际）、keji（科技）、yule（娱乐）、junshi（军事）、tiyu（体育）、xiaohua（笑话）、jiankang（健康）、shishang（时尚）、caijing（财经）、qiche（汽车）、youxi（游戏）、lishi（人文）；
 isShowTab: 选填，boolean, 是否显示tab栏，默认true；
+changeTabWay: 选填，int，切换tab方式，可选值： 1， 2；1表示鼠标移动到对应tab切换，2表示鼠标点击对应tab时切换，默认1.
 containerHeight:选填，int, 若要信息流只在容器内滚动，则需设置容器高度，默认0；
 actionAtBottom: 选填，str, 滚动到底部时做何种行为，可选值：‘load’， ‘fixed’，load表示加载下一页数据，fixed表示固定在当前位置；
-scrollPosition： 选填，tab切换后滚动条的位置，可选值‘top’，‘lastPosition’，top表示切换时回到顶部，lastPositon表示切换时回到之前离开时的位置。
+scrollPosition： 选填，tab切换后滚动条的位置，可选值‘top’，‘lastPosition’，top表示切换时回到顶部，lastPositon表示切换时回到之前离开时的位置，默认值‘lastPosition’。
+isShowFourImg： 选填，boolean，是否将三图展示为四图，若无图片则展示为 ‘查看更多’按钮。默认false；
+isShowBottomNotice：选填，boolean，是否展示底部提示信息，默认true。
+firstAdPosition：选填，int，第一条广告位置，默认2,数值必须>=2并且<=newsRaido.
+instance：选填，int, 滚动到距离页面底部到少距离加载新新闻，默认0；
+topInstance: 选填，int, 滚动信息流底部时，若信息流下面有别的内容造成遮挡时，信息自动向上移动的最大距离。默认值：0；
+loadInstance: int,选填，容器顶部距离页面底部多少px时开始加载第一页，默认300；
+loadDelay: int, 选填，加载第一页信息时，多少毫秒后判断是否要加载第一页，默认200；（加载第一页时会判断信息流的位置是否出现在屏幕内，若信息流上面有其他内容，则需要延时一段时间才能判断正确。）；
+showRefreshBtn： 选填，boolean，是否在tab栏显示刷新（换一换）按钮，默认：false；
 4.3 广告控制类
 
-showAd：选填，boolean, 是否展示广告，默认true；
-newsRadio：选填，int, 除第一条外，每多少条新闻后加载一条广告，默认3（注意：要保证完全生效，该值要能被每页加载新闻条数除尽）；
+showAd：选填，boolean, 是否展示新闻区的广告，默认true；
+newsRadio：选填，int, 除第一条外，每多少条新闻后加载一条广告，默认3。
 adConfig: 选填，obj, 广告来源及比例设置，默认{baidu: 0.3, 360: 0.7},各项加起来需为1，目前来源只有baidu 和 360；
 replace360Ad: 选填，boolean,因接口报错，接口返回数量不足，插件拦截请求等原因导致360广告位内无360广告时，是否替换为百度广告，默认 true；
-baiduAdUrl:选填，str, 百度广告html地址，默认’ads/baiduAd.html’,注意：更换的地址必须和页面地址在同一域名下。
+baiduAdUrl:选填，str, baiduAd.html文件位置，若为相对路径，路径相对于当前html文件位置，默认’ads/baiduAd.html’,注意：更换的地址必须和页面地址在同一域名下。
 isShow360cc:选填，boolean, 是否展示360橱窗，默认false；
 _360ccp:选填，str, 360橱窗位置，可选值’top’, ‘bottom’。默认值’top’;
 adMode:选填， int， 广告模式，可选值，1，2；1表示强制显示成单图广告，2表示按照返回类型显示成对应类型广告；
 forceStretchAdImg， boolean，是否强制拉伸广告图片以适应容器大小，默认false；false时图片水平方向宽度100%，竖直方向居中等比缩放。
+isShowBaiducc: boolean, 选填， 是否展示百度橱窗，默认 false。
+baiduccPosition: str,选填，百度橱窗位置，可选值： ‘top’, ‘bottom’,默认’top’.
+adInsertWay： 选填，百度广告插入方式，可选值’ratio’(按比例插入), ‘order’（按顺序插入）,默认’ratio’;
 4.4 新闻控制类
 
 reloadInterval: 选填，int, 新闻加载失败时，自动重新请求时间间隔，默认3000
 reloadTimes： 选填，int, 新闻加载失败时，自动重新请求次数，默认 5
 loadPage: 选填，int, 上拉加载自动加载页数，之后显示为加载按钮，默认 5
 maxPage: 选填，int, 可以加载的总页数，之后显示为 ‘没有了’，等字样，默认10
-newsNumPer：选填，int, 每次加载的新闻条数；默：18（该参数值必须是newsRadio的倍数）；
-newsNumFirst：选填，int, 第一次加载的新闻条数，默认：18（该参数值必须是newsRadio的倍数）；
+newsNumPer：选填，int, 每次加载的新闻条数；默：18（注意：要保证newsRadio完全生效，需满足条件： newsNumPer % newsRadio === 0）；
+newsNumFirst：选填，int, 第一次加载的新闻条数，默认：18（注意：要保证newsRadio完全生效，需满足条件： newsNumFirst % newsRadio === 0）；
 newsMode: 选填，int, 新闻显示模式，数值有1，2，3； 1表示只显示单图新闻，2表示优先显示多图新闻，3表示在可选的情况下，随机显示单图或多图新闻，默认值3；
-hideInfo： 选填，boolean，是否简略显示新闻的信息，默认值false；
-newsOrigin：选填，str, 新闻来源，默认：’dongfang’, 目前可选值只有这一个；
-instance：选填，int, 滚动到距离页面底部到少距离加载新新闻，默认0；
-topInstance: 选填，int, 滚动信息流底部时，若信息流下面有别的内容造成遮挡时，信息自动向上移动的最大距离。默认值：0；
+hideInfo： 选填，boolean，是否隐藏新闻标题下的信息，默认值false；
+newsOrigin：选填，str, 新闻来源，默认：’dongfang’, 可选值’dongfang’, ‘yingshi’；
 forceStretchNewsImg， boolean，是否强制拉伸新闻图片以适应容器大小，默认false；false时图片水平方向宽度100%，竖直方向居中等比缩放。
 4.5 统计控制类
 
 showSpace:选填，广告或新闻超出屏幕或容器底部多少距离发送展现统计，默认值0；
 statisticsInterval: 选填,新闻展现统计发送的间隔时间（毫秒），默认值： 1000
-4.6 优化类（该参数主要针对ie8及以下内容过多时，卡顿的优化，如无必要不要随意更改，可能造成统计误差）
+4.6 优化类（该参数主要针对低版本浏览器内容过多时，部分机型出现卡顿的优化，如无必要不要随意更改，可能造成统计误差）
 
 scrollOptimizeMethod: int，选填，展现统计优化方式，可选值‘timies’， ‘time’，times表示过滤N次滚动之后，执行检测一次展现操作，time表示至少过去多少时间后才执行一次检测展现操作，默认值times。
 scrollInterval：int，选填，scrollOptimizeMethod为time时，配置的时间参数，默认500；
 scrollTimes:int,选填，scrollOptimizeMethod为times时，配置的时间参数，默认6；
-三、使用示例
+4.7 生命周期
+
+init: function, 选填，信息流初始化后调用（数据尚未开始请求），参数为dom对象（滚动容器）
+update：function, 选填，信息流每次加载新数据后触发。
+三、使用示例（svn上有详细代码）
 <!DOCTYPE html>
 <html>
 <head>
@@ -124,15 +130,17 @@ scrollTimes:int,选填，scrollOptimizeMethod为times时，配置的时间参数
   </style>
 </head>
 <body>
-  <div class='n256-news-container' id='n256-news-container'></div>
-  <script type="text/javascript" language="javascript" charset="utf-8" src="//static.mediav.com/js/mvf_pm_slider.js"></script>
-  <script src='http://e2.2345.com/news/module2/js/newsModule-v2.js' charset='utf-8'></script>
+  <div id='test'></div>
+  <script src='//e2.2345.com/news/module2/js/newsModule-v2.js' charset='utf-8'></script>
   <script>
     new NewsModule ({
       containerId: 'test',
       adsenseid: 10001801,
       newsAdsenseid: 100018,
-      baiduAdId: 'u3445478',
+      baiduAdIds: {1：{
+          precent: 1,
+          id: 'u3423033',
+      }},
       dongfangNewsId: '03090',
       _360ccId: 'YjBtSA',
       _360adId: '6n3Egq'
@@ -140,3 +148,55 @@ scrollTimes:int,选填，scrollOptimizeMethod为times时，配置的时间参数
   </script>
 </body>
 </html>
+附录1 css样式调整说明：
+方式1：下面是news.scss中暴露出来的变量及其默认值，@import引入scss文件前，定义自己需要更改的变量即可（参考svn代码示例）；
+
+方式2： 自己写一段css，覆盖对应位置样式
+
+方式3： 通过暴露出来的class接口
+.n256-news-tab span：tab没选中时的样式
+.active-tab：tab选中时的样式
+
+$containerId: #n256-news-container; //容器id，必填
+$containerW:auto; // 容器宽
+$borderC: #d8dbe5; // 容器边框颜色
+$fontF: "微软雅黑"; // 容器内字体类型
+$tabHeight: 40px; // tab高度及line-height
+$newsListW:auto; // 每个新闻的宽度
+$newsM:0px 0px 0px 20px; // 每个新闻的margin
+$newsP:20px 0px 20px 0px; // 每个新闻的padding
+$singleImgSize:180px 120px; // 单图新闻中图片的宽高
+$singleImgM: 0 10px 0 0; //单图新闻中图片的margin
+$multiImgSize: 180px 120px; // 多图新闻中图片的宽高
+$multiImgM: 0px 10px 12px 0px; // 多图新闻中图片的margin
+$baiduAdP: 0 0 0 0; // 百度广告padding
+$titleFont: 12px; // 标题字体大小
+$titleHeight: 32px;//标题高度
+$titleLineHeight: 16px;//标题字体行间距
+$titleFontWeight: bold;//标题字号
+$titleM: 0 0 8px 0t;//标题margin
+$check-btn-fontsize: 12px;//查看更多按钮字体大小
+$scrollbar-style-switch: false;// 是否开启css3调节webkit内核滚动条样式
+$scrollbar-width: 10px;// 滚动条宽度
+$scrollbar-background:#F5F5F5;// 滚动条背景颜色
+$scrollbar-color:#555;// 滚动条颜色
+附录2 滚动条插件使用说明：
+准备工作：隐藏滚动容器的系统滚动条（父容器设置overflow:hidden; 滚动容器的宽度适当调整，使滚动条超出父容器宽度，达到隐藏的效果）。
+
+注意：该插件依托于浏览器滚动条，相当于浏览器滚动条的映射，关闭了系统的滚动条将无法正常使用；
+
+样式调整说明，以下是变量及默认值(需使用scrollbar.scss, 调整方式同news.scss)
+
+$scrollbar-width: 10px;// 滚动条宽度
+$scrollbar-height: 100%;//滚动条高度
+$scrollbar-background: #aaa;//滚动条背景色
+$scrollbar-color: #555;// 滑块颜色
+$scrollbar-hover-color: #444;// 滑块hover时的颜色
+$scrollbar-top: 0;// 滚动条距离父元素的顶部距离
+$scrollbar-right: 0 ;// 滚动条距离父元素的右边距离
+实例化及配置说明（页面需引入scrollbar.js,推荐使用线上地址：//e2.2345.com/news/module2/js/scrollbar.js）
+new Scrollbar({
+    target: str/dom //必填，滚动容器的id或对应的dom
+})
+实例对象方法
+refresh: 当滚动容器高度发生变化时，在高度发生变化后调用此方法以刷新滚动条。ie8以上无需调用此方法，会自动刷新，ie8及一下在页面滚动时会自动刷新，不在第一屏出现大多不用处理。其他特殊情况出现滚动条异常时，可在滚动容器高度发生变化后调用此方法。

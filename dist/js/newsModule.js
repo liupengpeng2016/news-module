@@ -1,1 +1,1231 @@
-"use strict";var _typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t};"undefined"==typeof console&&(window.console={log:function(){},error:function(){}});var $l=function(t,e){return new DomOperate(t,e)};function DomOperate(t,e){for(var n=this.init(t,e),i=0;i<n.length;i++)this[i]=n[i];this.length=n.length}DomOperate.prototype={constructor:DomOperate,init:function(t,e){var n=this.strType(t);if("id"===n){var i=document.getElementById(t.slice(1));return i?[i]:[]}if("tag"===n)return(e||document).getElementsByTagName(t);if("class"===n){for(var a=(e||document).getElementsByTagName("*"),s=[],o=new RegExp("(\\s+|^)"+t.slice(1)+"(\\s+|$)"),r=0;r<a.length;r++)o.test(a[r].className)&&s.push(a[r]);return s}return"dom"===n?[t]:"domArray"===n?t:[]},strType:function(t){if("object"===(void 0===t?"undefined":_typeof(t))){if(t instanceof Array)return"domArray";if(t.ownerDocument===document)return"dom"}else{if("string"!=typeof t)return null;if(/^#.+/.test(t))return"id";if(/^\..+/.test(t))return"class";if(/^[^.#]/.test(t))return"tagName"}},addClass:function(t){for(var e=0;e<this.length;e++){if($l(this[e]).hasClass(t))return;this[e].className+=" "+t}return this},removeClass:function(t){for(var e=new RegExp("\\s*"+t),n=0;n<this.length;n++)this[n].className=this[n].className.replace(e,"");return this},hasClass:function(t){var e=new RegExp("(\\s+|^)+"+t+"(\\s+|$)");return-1!=this[0].className.search(e)},hasAttr:function(t){return null!==this[0].getAttribute(t)},attr:function(){if(this[0])return 1==arguments.length?this[0].getAttribute(arguments[0]):(this[0].setAttribute(arguments[0],arguments[1]),this)},child:function(t){for(var e=this[0].childNodes||[],n=[],i=0;i<e.length;i++)t?e[i].id!=t.slice(1)&&e[i].className!=t.slice(1)&&e[i].nodeName.toLowerCase()!=t||n.push(e[i]):e[i].tagName&&n.push(e[i]);return $l(n)},index:function(t){var e=$l(this[0].parentNode).child();if(parseInt(t))return $l(e[t]);for(var n=0;n<e.length;n++)if(this[0]===e[n])return n},on:function(t,n,i){var s=this;2==arguments.length&&(i=arguments[1],n="");for(var e=function(t){var e=function t(e,n){var i;if(e===document.body)return null;n||(i=e);var a=s.strType(n);"class"===a?new RegExp("(\\s+|^)"+n.slice(1)+"(\\s+|$)").test(e.className)&&(i=e):"id"===a?new RegExp("(\\s+|^)"+n.slice(1)+"(\\s+|$)").test(e.id)&&(i=e):"tagName"===a&&new RegExp("(\\s+|^)"+n+"(\\s+|$)","i").test(e.tagName)&&(i=e);return void 0===i?t(e.parentNode,n):i}((t=t||event).target||t.srcElement,n);e&&i.call(e,t)},a=0;a<s.length;a++)window.addEventListener?s[a].addEventListener(t,e):window.attachEvent&&s[a].attachEvent("on"+t,e);return s},offset:function(){return function t(e){return e?{top:e.offsetTop+t(e.offsetParent).top,left:e.offsetLeft+t(e.offsetParent).left}:{top:0,left:0}}(this[0])},isInView:function(t){t=t||0;var e=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop,n=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight;return this.offset().top+t<=e+n},find:function(t){return new DomOperate(t,this[0])}};var $lMethods={ajax:function(e){var t,n;if(n=function t(e,n){var i="",a=!!(n=n||"");for(var s in e)e.hasOwnProperty(s)&&("object"===_typeof(e[s])?i+=t(e[s],n+(a?"[":"")+s+(a?"]":"")):i+=n+(a?"[":"")+s+(a?"]":"")+"="+encodeURIComponent(e[s])+"&");return i}(e.params).slice(0,-1),"jsonp"===e.method){var i=document.createElement("script");i.onerror=i.onabort=function(){e.error&&e.error()};var a=e.jsonp||"callback",s=e.jsonpCallback||"n"+Math.random().toString(26).slice(2);window[s]=function(t){e.success(t)};var o=(n?"&":"")+a+"="+s;i.src=e.url+"?"+n+o,document.getElementsByTagName("head")[0].appendChild(i)}else t=window.XMLHttpRequest?new XMLHttpRequest:new ActiveXObject("Microsoft.XMLHTTP"),"get"===e.method?t.open("get",e.url+"?"+n,!0):"post"===e.method&&t.open("post",e.url,!0),t.setRequestHeader("Content-type","application/x-www-form-urlencoded"),t.onreadystatechange=function(){4==t.readyState&&(200==t.status||304==t.status?e.success&&e.success(t.responseText):e.error&&e.error()),t.send("post"===e.method?n:"")}},iev:function(){var t=navigator.userAgent,e=/msie \d+/i.exec(t);return e?parseInt(e[0].split(" ")[1]):void 0},cookie:function(){var t=arguments[0],e=arguments[1],n=arguments[2];if(!(1<arguments.length)){var i=new RegExp(t+"=[^;=]*");return document.cookie.match(i)&&document.cookie.match(i)[0].split("=")[1]}var a=new Date,s=a.getFullYear(),o=a.getDate();"forever"===n?a.setFullYear(s+100):a.setDate(o+n),document.cookie=t+"="+e+(n?";expires="+a.toGMTString():"")},open:function(t){var e="n256"+Math.random().toString(26).slice(2),n=document.createElement("a");n.href=t,n.id=e,n.target="_blank",n.style.display="none",document.body.appendChild(n),setTimeout(function(){document.getElementById(e).click()},0)},parseTime:function(t){function e(t){return 10<=t?t:"0"+t}(t=new Date(t)).getFullYear();var n=t.getMonth()+1,i=t.getDate(),a=t.getHours(),s=t.getMinutes();t.getSeconds();return e(n)+"月"+e(i)+"日 "+e(a)+":"+e(s)}};for(var i in $lMethods)$lMethods.hasOwnProperty(i)&&($l[i]=$lMethods[i]);function NewsModule(t){this.adsenseid=t.adsenseid,this.newsAdsenseid=t.newsAdsenseid,this.statisticsInterval=t.statisticsInterval||1e3,this.tabData=t.tabData||[["头条","toutiao"]],this.newsNumPer=t.newsNumPer||18,this.newsNumFirst=t.newsNumFirst||18,this.newsRadio=t.newsRadio||3,this.showAd=!1!==t.showAd,this.newsOrigin=t.newsOrigin||"dongfang",this.instance=t.instance||0,this.adConfig=t.adConfig||{baidu:.3,360:.7},this.replace360Ad=!1!==t.replace360Ad,this.loadPage=t.loadPage||5,this.reloadInterval=t.reloadInterval||3e3,this.reloadTimes=t.reloadTimes||5,this.maxPage=t.maxPage||10,this.isShowTab=!1!==t.isShowTab,this.baiduAdUrl=t.baiduAdUrl||"ads/baiduAd.html",this.topInstance=t.topInstance||0,this.baiduAdId=t.baiduAdId||"u3433620",this.dongfangNewsId=t.dongfangNewsId||"02151",this._360ccId=t._360ccId||"OBHnX7",this._360adId=t._360adId||"mCzFYt",this.newsBuffer=[],this.adNumPer=parseInt((this.newsNumPer-1)/this.newsRadio+1),this.adNumFirst=parseInt((this.newsNumFirst-1)/this.newsRadio+1),t.adsenseid&&t.newsAdsenseid||console.error("adsenseid, newsAdsenseid is both required"),this.state={activeIndex:0,pagesList:[0]},this.init()}NewsModule.prototype={constructor:NewsModule,createLoadNotice:function(){var t=document.createElement("div"),e=document.createElement("p");t.className="n256-news-loadnotice",t.id="n256-news-loadnotice",t.innerHTML="加载中...",e.className="n256-load-more-btn hide btn",e.id="n256-load-more-btn",e.innerHTML="点击加载更多",$l("#n256-news-container")[0].appendChild(t),$l("#n256-news-container")[0].appendChild(e)},createNewsTop:function(){var e=this,t=document.createElement("div");t.className="n256-news-top",t.id="n256-news-top";t.innerHTML='<div id="n256-news-top-ad" class="n256-news-top-ad"></div><div id="n256-news-top-list" class="n256-news-top-list"><h4>热点排行</h4></div>',$l("#n256-news-container")[0].appendChild(t),setTimeout(function(){var t={w:280,showid:e._360ccId,rshowid:e._360ccId,inject:"inlay",layout:"magicCubeScene",style:"magicCube",row:"2",line:"2",placeholderId:"n256-news-top-ad"};"undefined"!=typeof BANNER_SLIDER&&BANNER_SLIDER(t)},0)},createNoNewsNotice:function(){var t=document.createElement("div");t.className="n256-nonews-notice hide",t.id="n256-nonews-notice",t.innerHTML='<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>';var e=document.createElement("div");e.className="n256-nonews-notice-hottop hide",e.id="n256-nonews-notice-hottop",e.innerHTML='<a href="javascript:;" class="btn">暂无内容，点击重新加载</a>',$l("#n256-news-container")[0].appendChild(t),$l("#n256-news-top")[0].appendChild(e)},newsTopTemplate:function(t,e){var n=t.miniimg[0].src,i=t.topic,a=t.url;return'<a class="n256-news-top-list-item news-item" target=_blank href='+a+" data-url="+a+" data-num="+(e+1)+'><div class="img"><img src="'+n+'" alt=""/></div><p class="title"><span>'+i+"</span></p></a>"},singleImgNewsTemplate:function(t,e){return'<a class="n256-news-item-singleImg news-item"  target="_blank" href='+t.url+" data-url="+t.url+'><div class="n256-news-img"><img src="'+t.miniimg[0].src+'" alt=""></div><div class="n256-news-content"><div class="content"><span class="title">'+t.topic+'</span><p class="n256-news-info"><span class="type">'+t.tpch+"</span><span>"+t.source+"</span><span>"+$l.parseTime(1e3*parseInt(t.date))+"</span></p></div></div></a>"},multiImgNewsTemplate:function(t){return'<a class="n256-news-item-multiImg news-item"  target=_blank href='+t.url+" data-url="+t.url+'><span class="title">'+t.topic+'</span><ul><li><img src="'+t.miniimg[0].src+'" alt=""></li><li><img src="'+t.miniimg[1].src+'" alt=""></li><li><img src="'+t.miniimg[2].src+'" alt=""></li></ul><p class="n256-news-info"><span class="type">'+t.tpch+"</span><span>"+t.source+"</span><span>"+$l.parseTime(1e3*parseInt(t.date))+"</span></p></a>"},baiduAdContainer:function(t){return'<div class="ad-baidu" data-num="'+t+'" style="position:relative;"></div>'},_360AdContainer:function(t){return'<div class="ad-360" data-num="'+t+'" style="position:relative;"></div>'},_360AdTemplate:function(t,e){if(!t)return"";var n,i=t.type,a=t.clktk.join(),s=t.imptk.join();return 1==i||4==i?n='<a class="n256-news-item-singleImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+a+" data-imptk="+s+'><div class="n256-news-img"><img src="'+t.img+'" alt=""></div><div class="n256-news-content"><div class="content"><span class="title">'+t.title+'</span><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></div></div></a>":2==i?n='<a class="n256-news-item-multiImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+a+" data-imptk="+s+'><span class="title">'+(t.topic||t.title||t.desc)+'</span><ul><li><img src="'+t.assets[0].img+'" alt=""></li><li><img src="'+t.assets[1].img+'" alt=""></li><li><img src="'+t.assets[2].img+'" alt=""></li></ul><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></a>":3==i&&(n='<a class="n256-news-item-bigImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+a+" data-imptk="+s+'><span class="title">'+(t.topic||t.title||t.desc)+'</span><div class="big-img"><img src="'+t.img+'" alt=""/></div><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></a>"),n},baiduAdTemplate:function(t){var e="n256"+Math.random().toString(16).slice(2);return this.adStatistics(1,null,null,t,1002),'<iframe frameborder="0" width="100%" id="'+e+'" scrolling="no" src="'+this.baiduAdUrl+"?id="+this.baiduAdId+"#"+e+'"/>'},get360Ad:function(){var a=Math.random().toString(26).slice(2),s=1;return function(t,e,n){var i=this;window.isNewsLoading=!0,this.adStatistics(1,null,null,e,1001),$l.ajax({method:"jsonp",params:{of:4,newf:1,type:1,showid:this._360adId,uid:a,reqtimes:s,impct:t},jsonp:"jsonp",jsonpCallback:"n360ad",url:"http://show.g.mediav.com/s",success:function(t){i.adStatistics(2,null,null,e,1001),window.isNewsLoading=!1,n&&n(t.ads),s++},error:function(){window.isNewsLoading=!1,n&&n([])}})}}(),getDongfangNews:function(){var t,o="",r="",d=0,l=((t=$l.cookie("n256NewsUid"))||(t=Math.random().toString(26).slice(2)+Math.random().toString(26).slice(2),$l.cookie("n256NewsUid",t,"forever")),t),c=!0;return function(i,a,t){t&&(r=o="",d=0);var n,e,s=this;n=function(t){s.newsStatistics(1),window.isNewsLoading=!0;var e=s.state.pagesList[s.state.activeIndex]+1,n=c?s.newsNumFirst:s.newsNumPer;c=!1,$l.ajax({method:"jsonp",url:"http://2345jsllq.dftoutiao.com/newsapi_pc/newsjp02",params:{type:s.tabData[s.state.activeIndex][1],startkey:o,newkey:r,pgnum:e,uid:l,idx:d,qid:s.dongfangNewsId,position:t,newsnum:n},success:function(t){s.state.pagesList[s.state.activeIndex]++,o=t.endkey,r=t.newkey,d+=t.data.length,s.newsStatistics(2),window.isNewsLoading=!1,i&&i(t.data),$l("#n256-news-top-content")[0]&&($l("#n256-news-top-content")[0].style.paddingBottom="0px")},error:function(){window.isNewsLoading=!1,a&&a()}})},e=$l.cookie("n256Position")||"",$l.iev()<=8&&(e=" "),e?n&&n(e):$l.ajax({method:"jsonp",url:"http://guess.union2.50bang.org/adsapi/ci",success:function(t){var e=t.c;n&&n(e),$l.cookie("n256Position",t.c)},error:function(){n&&n(e)},jsonp:"jsonp",jsonpCallback:"n256position"})}}(),getNewsTop:function(e,t){var n=this;n.newsStatistics(1),$l.ajax({url:"http://newswifiapi.dftoutiao.com/newstop/change",method:"jsonp",success:function(t){e&&e(t.data),n.newsStatistics(2)},error:function(){t&&t()},params:{qid:n.dongfangNewsId,ispc:1,newsnum:20,pgnum:1},jsonp:"jsonpcallback"})},getNews:function(){var n=0;return function(t){if(n>=this.reloadTimes)return n=0,this.showNonewsNotice(!0);var e=this;this.getDongfangNews(function(t){t||t.length?(n=0,e.fillNews(t),e.showNonewsNotice(!1)):(n++,setTimeout(function(){e.getNews()},e.reloadInterval))},function(){n++,setTimeout(function(){e.getNews()},e.reloadInterval)},t)}}(),createTab:function(){for(var t="",e=0;e<this.tabData.length;e++){var n="|",i=this.tabData[e][2];e===this.tabData.length-1&&(n=""),t+='<span data-type="'+this.tabData[e][1]+'" data-index="'+e+'">'+(i?'<img class=tab-icon src="'+i+'" />':"")+this.tabData[e][0]+"</span>"+n,this.state.pagesList.push(0)}var a=document.createElement("div");a.id="n256-news-tab",a.className="n256-news-tab"+(this.isShowTab?"":" hide"),a.innerHTML=t,$l("#n256-news-container")[0].appendChild(a)},createNewsContainer:function(){for(var t=0;t<this.tabData.length;t++){var e=document.createElement("div");e.id="n256-tab-item-"+this.tabData[t][1],e.className="n256-tab-item",$l("#n256-news-container")[0].appendChild(e)}},fillNews:function(t,e){for(var n,i=0,a="",s=$l(".n256-tab-item")[this.state.activeIndex],o=0;o<t.length;o++){var r="";if((0===o||o%3==0)&&this.showAd){var d=Math.random(),l=0;for(var c in this.adConfig)if(this.adConfig.hasOwnProperty(c)){if(d<l+this.adConfig[c]&&l<=d){n=c;break}l+=this.adConfig[c]}switch(n){case"baidu":r=this.baiduAdContainer(this.adsenseid);break;case"360":r=this._360AdContainer(this.adsenseid),i++}this.adsenseid++}a+="multi"==(n=3<=t[o].miniimg.length?.5<=Math.random()?"single":"multi":"single")?this.multiImgNewsTemplate(t[o]):this.singleImgNewsTemplate(t[o]),a+=r}e&&(s.innerHTML="");var u=document.createElement("div");$l(u).attr("data-page",this.state.pagesList[this.state.activeIndex]),u.innerHTML=a,s.appendChild(u);var p=$l(u).find(".ad-baidu");for(o=0;o<p.length;o++){var m=$l(p[o]).attr("data-num");p[o].innerHTML=this.baiduAdTemplate([m])}var h=this;if(i){var f=$l(u).find(".ad-360"),w=[];for(o=0;o<f.length;o++)w.push($l(f[o]).attr("data-num"));this.get360Ad(i,w,function(t){t||(t=[]);for(var e=$l(u).find(".ad-360"),n=0;n<t.length;n++)e[n].innerHTML=h._360AdTemplate(t[n]);if(h.replace360Ad)for(n=t.length;n<e.length;n++){var i=$l(e[n]).attr("data-num");$l(e[n]).removeClass("ad-360").addClass("ad-baidu"),e[n].innerHTML=h.baiduAdTemplate([i])}})}},fillTopNews:function(t){t.length=20;for(var e="",n=0;n<t.length;n++)e+=this.newsTopTemplate(t[n],n);var i=document.createElement("div");i.id="n256-news-top-content",i.innerHTML=e,$l("#n256-news-top-list")[0].appendChild(i)},showNonewsNotice:function(t){var e=$l("#n256-news-loadnotice"),n=$l("#n256-load-more-btn"),i=$l("#n256-nonews-notice");t?(e.addClass("hide"),n.addClass("hide"),i.removeClass("hide")):(e.removeClass("hide"),n.addClass("hide"),i.addClass("hide"))},showBottomNotice:function(t){var e=t?"已经到底了，休息一会吧~":"加载中...";$l("#n256-news-loadnotice")[0].innerHTML=e},_360Statistics:function(t){function e(t){var e=new Image;e.onload=e.onerror=e.onabort=function(){e.onload=e.onerror=e.onabort=null},e.src=t}for(var n=0;n<t.length;n++)e(t[n])},newsStatistics:function(t,e,n,i){$l.ajax({method:"jsonp",url:"//guess.union2.50bang.org/trrs",params:{adsenseid:this.newsAdsenseid,user:{uid:""},site:{url:location.href,referer:document.referrer},app:{},device:{userAgent:navigator.userAgent,idfa:"",imei:"",deviceType:0,brand:"",model:"",os:"",osv:"",network:""},data:{type:7,action:"news",acode:t,atime:parseInt((new Date).getTime()/1e3),url:location.href,rurl:document.referrer,tab:this.tabData[this.state.activeIndex][1],nid:"",nurl:e||"",nindex:i&&i.length?"":n||"",hindex:i||"",channelid:1003}}})},adStatistics:function(t,e,n,i,a){$l.ajax({method:"jsonp",url:"//guess.union2.50bang.org/trrs",params:{adsenseid:this.newsAdsenseid,user:{uid:""},site:{url:location.href,referer:document.referrer},app:{},device:{userAgent:navigator.userAgent,idfa:"",imei:"",deviceType:0,brand:"",model:"",os:"",osv:"",network:""},data:{type:7,action:"ad",acode:t,atime:parseInt((new Date).getTime()/1e3),url:encodeURIComponent(location.href)||"",rurl:encodeURIComponent(document.referrer)||"",tab:this.tabData[this.state.activeIndex][1],adsenseid:i||"",aurl:encodeURIComponent(e||""),aindex:n||"",channelid:a||""}}})},getAdPosition:function(t){var e=t.offsetX,n=t.offsetY,i=t.target||t.srcElement;return{x:e+i.offsetTop,y:n+i.offsetLeft}},init:function(){this.createTab(),this.createNewsContainer(),this.createNewsTop(),this.createLoadNotice(),this.createNoNewsNotice();var d,l,g=this;function t(){var t=document.documentElement.scrollHeight||document.body.scrollHeight,e=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop,n=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight,i=t-Math.ceil(e+n);return i<=g.topInstance?$l("#n256-news-top-content")[0]&&($l("#n256-news-top-content")[0].style.paddingBottom=g.topInstance-i+"px"):$l("#n256-news-top-content")[0]&&($l("#n256-news-top-content")[0].style.paddingBottom="0px"),g.state.pagesList[g.state.activeIndex]>=g.maxPage?g.showBottomNotice(!0):g.state.pagesList[g.state.activeIndex]>=g.loadPage?(g.showBottomNotice(!0),$l("#n256-news-loadnotice").addClass("hide"),void $l("#n256-load-more-btn").removeClass("hide")):void(i<=g.instance&&(window.isNewsLoading||g.getNews()))}function e(t){var e=$l($l(this).child()[0]).attr("data-url");e=(e=(e=(e=e.replace("__EVENT_TIME_START__",d)).replace("__EVENT_TIME_END__",l)).replace("__OFFSET_X__",g.getAdPosition(t).x)).replace("__OFFSET_Y__",g.getAdPosition(t).y);var n,i=-1!==this.className.indexOf("ad-360")?"360":"baidu",a=e,s=$l(this.parentNode).attr("data-page"),o="360"===i?"1001":"1002";n=2<=s?$l(this).index()+(s-2)*(g.newsNumPer+g.adNumPer)+(g.adNumFirst+g.newsNumFirst):$l(this).index();var r=$l(this).attr("data-num");g.adStatistics(4,a,n+1,[r],o)}function i(){for(var t=$l($l(".n256-tab-item")[g.state.activeIndex]),e=t.find(".news-item"),n=$l("#n256-news-top").find(".news-item"),i=t.find(".ad-360"),a=t.find(".ad-baidu"),s=0;s<e.length;s++){var o=$l(e[s]).attr("isvisited");if($l(e[s]).isInView()&&!o){var r=0,d=$l(e[s]).attr("data-num"),l=$l(e[s]).attr("data-url");r=2<=(c=$l(e[s].parentNode).attr("data-page"))?$l(e[s]).index()+(c-2)*(g.newsNumPer+g.adNumPer)+(g.adNumFirst+g.newsNumFirst):$l(e[s]).index(),g.newsBuffer.push({nurl:l,nindex:r+1,hindex:d}),$l(e[s]).attr("isvisited","true")}}for(s=0;s<n.length;s++){o=$l(n[s]).attr("isvisited");if($l(n[s]).isInView()&&!o){d=$l(n[s]).attr("data-num"),l=$l(n[s]).attr("data-url");var c=$l(n[s].parentNode).attr("data-page");g.newsBuffer.push({nurl:l,nindex:"",hindex:d}),$l(n[s]).attr("isvisited","true")}}for(s=0;s<i.length;s++){o=(w=$l(i[s])).attr("isvisited");if(w.isInView()&&!o&&w.child().length){var u=w.attr("data-url"),p=w.attr("data-num"),m=0,h=1001;if(m=2<=(c=$l(w[0].parentNode).attr("data-page"))?w.index()+(c-2)*(g.newsNumPer+g.adNumPer)+(g.adNumFirst+g.newsNumFirst):w.index(),g.adStatistics(3,u,m+1,[p],h),w.child()[0]){var f=$l(w.child()[0]).attr("data-imptk").split(",");g._360Statistics(f)}w.attr("isvisited","true")}}for(s=0;s<a.length;s++){var w;o=(w=$l(a[s])).attr("isvisited");if(w.isInView()&&!o&&10<=w[0].offsetHeight){u=w.attr("data-url"),p=w.attr("data-num"),m=0,h=1002;m=2<=(c=$l(a[s].parentNode).attr("data-page"))?w.index()+(c-2)*(g.newsNumPer+g.adNumPer)+(g.adNumFirst+g.newsNumFirst):w.index(),g.adStatistics(3,u,m+1,[p],h),w.attr("isvisited","true")}}}$l("#n256-load-more-btn").on("click",function(){g.getNews()}),$l("#n256-nonews-notice").on("click",function(){g.getNews()}),$l("#n256-nonews-notice-hottop").on("click",function(){g.getNewsTop(function(t){t.length=20,g.fillTopNews(t),$l("#n256-nonews-notice-hottop").addClass("hide")},function(){$l("#n256-nonews-notice-hottop").removeClass("hide")})}),$l("#n256-news-tab").on("click","span",function(){g.state.pagesList[g.state.activeIndex]>=g.loadPage?($l("#n256-news-loadnotice").addClass("hide"),$l("#n256-load-more-btn").removeClass("hide")):($l("#n256-news-loadnotice").removeClass("hide"),$l("#n256-load-more-btn").addClass("hide"));var t=$l(this).attr("isvisited"),e=$l("#n256-news-tab").child("span"),n=$l(this).attr("data-index");$l(this).attr("data-type");$l(e[g.state.activeIndex]).removeClass("active-tab"),$l(e[n]).addClass("active-tab");var e=$l("#n256-news-container").find(".n256-tab-item");{if($l(e[g.state.activeIndex]).removeClass("active-tab-item"),$l(e[n]).addClass("active-tab-item"),g.state.activeIndex=n,t)return;window.isNewsLoading||(g.getNews(!0),$l(this).attr("isvisited","true"))}setTimeout(function(){i()},2e3)}),window.addEventListener?window.addEventListener("scroll",t):window.attachEvent("onscroll",t),$l("#n256-news-container").on("mousedown",".ad-360",function(t){d=(new Date).getTime()}),$l("#n256-news-container").on("mouseup",".ad-360",function(t){if(2!==t.button){var e=$l($l(this).child()[0]),n=e.attr("data-clktk"),i=(new Date).getTime();n=(n=(n=(n=(n=n.replace("__EVENT_TIME_START__",d)).replace("__EVENT_TIME_END__",i)).replace("__OFFSET_X__",g.getAdPosition(t).x)).replace("__OFFSET_Y__",g.getAdPosition(t).y)).split(","),g._360Statistics(n);var a=e.attr("data-url");a=(a=(a=(a=a.replace("__EVENT_TIME_START__",d)).replace("__EVENT_TIME_END__",i)).replace("__OFFSET_X__",g.getAdPosition(t).x)).replace("__OFFSET_Y__",g.getAdPosition(t).y),e.attr("href",a)}}),$l("#n256-news-container").on("click",".news-item",function(t){if(2!==t.button){var e=$l(this).attr("data-url"),n=0,i=$l(this).attr("data-num"),a=$l(this.parentNode).attr("data-page");n=2<=a?$l(this).index()+(a-2)*(g.newsNumPer+g.adNumPer)+(g.adNumFirst+g.newsNumFirst):$l(this).index(),g.newsStatistics(4,[e],[n+1],i?[i]:"");$l(this).attr("data-url")}}),$l("#n256-news-container").on("click",".ad-360",function(t){2!==t.button&&e.call(this,t)}),$l("#n256-news-container").on("click",".ad-baidu",function(){2!==evt.button&&e.call(this)}),window.addEventListener?window.addEventListener("scroll",i):window.attachEvent("onscroll",i),setInterval(function(){for(var t=[],e=[],n=[],i=[],a=0;a<g.newsBuffer.length;a++)g.newsBuffer[a].hindex?(e.push(g.newsBuffer[a].nurl),i.push(g.newsBuffer[a].hindex)):(t.push(g.newsBuffer[a].nurl),n.push(g.newsBuffer[a].nindex));t.length&&n.length&&g.newsStatistics(3,t,n),e.length&&i.length&&g.newsStatistics(3,e,null,i),g.newsBuffer=[]},g.statisticsInterval),$l("#n256-news-tab").child()[0].click(),g.getNewsTop(function(t){t.length=20,g.fillTopNews(t),$l("#n256-nonews-notice-hottop").addClass("hide")},function(){$l("#n256-nonews-notice-hottop").removeClass("hide")});var n=function(){var t=$l("#n256-news-top-list"),e=$l("#n256-news-top-content");e.length&&(e[0].offsetHeight+t.offset().top<=(window.pageYOffset||(document.documentElement||document.body).scrollTop)+(window.innerHeight||(document.documentElement||document.body).clientHeight)?e.addClass("fixed-position"):e.removeClass("fixed-position"))};window.addEventListener?window.addEventListener("scroll",n):window.attachEvent("onscroll",n)}};
+'use strict';
+if (typeof console === 'undefined') {
+  window.console = {
+    log: function () {},
+    error: function () {}
+  }
+}
+// dom operate methods
+var $l = function (str, gather) {
+  return new DomOperate(str, gather)
+}
+function DomOperate (str, gather) {
+  var doms = this.init(str, gather)
+  for (var i = 0; i < doms.length; i++) {
+    this[i] = doms[i]
+  }
+  this.length = doms.length
+}
+DomOperate.prototype = {
+  constructor: DomOperate,
+  init: function (str, gather) {
+    var strType = this.strType(str)
+    if (strType === 'id') {
+      var dom = document.getElementById(str.slice(1))
+      return dom ? [dom] : []
+    } else if (strType === 'tag') {
+      return (gather || document).getElementsByTagName(str)
+    } else if (strType === 'class') {
+      var tags = (gather || document).getElementsByTagName('*')
+      var classDom = []
+      var classExp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+      for (var i = 0; i < tags.length; i++) {
+        if (classExp.test(tags[i].className)) {
+          classDom.push(tags[i])
+        }
+      }
+      return classDom
+    } else if (strType === 'dom') {
+      return [str]
+    } else if (strType === 'domArray') {
+      return str
+    } else {
+      return []
+    }
+  },
+  strType: function (str) {
+    var idExp = /^#.+/
+    var classExp = /^\..+/
+    var tagExp = /^[^.#]/
+    if (typeof str === 'object') {
+      if (str instanceof Array) {
+        return 'domArray'
+      } else if (str.ownerDocument === document) {
+        return 'dom'
+      }
+    } else if (typeof str === 'string') {
+      if (idExp.test(str)) {
+        return 'id'
+      } else if (classExp.test(str)){
+        return 'class'
+      } else if (tagExp.test(str)) {
+        return 'tagName'
+      }
+    } else {
+      return null
+    }
+  },
+  addClass: function (newClass) {
+    for (var i = 0; i < this.length; i++) {
+      if($l(this[i]).hasClass(newClass)) return
+      this[i].className += ' ' + newClass
+    }
+    return this
+  },
+  removeClass: function (oldClass) {
+    var reg = new RegExp('\\s*' + oldClass)
+    for (var i = 0; i < this.length; i++) {
+      this[i].className = this[i].className.replace(reg, '')
+    }
+    return this
+  },
+  hasClass: function (str) {
+    var reg = new RegExp('(\\s+|^)+' + str + '(\\s+|$)')
+    return this[0].className.search(reg) != -1 ? true : false
+  },
+  hasAttr: function (str) {
+    return this[0].getAttribute(str) !== null
+  },
+  attr: function () {
+    if (!this[0]) return
+    if (arguments.length == 1) {
+      return this[0].getAttribute(arguments[0])
+    } else {
+      this[0].setAttribute(arguments[0], arguments[1])
+      return this
+    }
+  },
+  child: function (str) {
+    var childList = this[0].childNodes || []
+    var children = []
+    for (var i = 0; i < childList.length; i++) {
+      if (!str) {
+        if (childList[i].tagName) {
+          children.push(childList[i])
+        }
+      } else {
+        if (childList[i].id == str.slice(1) || childList[i].className == str.slice(1) || childList[i].nodeName.toLowerCase() == str) {
+          children.push(childList[i])
+        }
+      }
+    }
+    return $l(children)
+  },
+  index: function (index) {
+    var children = $l(this[0].parentNode).child()
+    if (parseInt(index)) {
+      return $l(children[index])
+    }
+    for (var i = 0; i < children.length; i++) {
+      if (this[0] === children[i]) {
+        return i
+      }
+    }
+  },
+  on: function (eventType, sStr, callback) {
+    var _this = this
+    if (arguments.length == 2) {
+      callback = arguments[1]
+      sStr = ''
+    }
+    function findThis (target, str) {
+      var result
+      if (target === document.body) {
+        return null
+      }
+      if (!str) {
+        result = target
+      }
+      var type = _this.strType(str)
+      if (type === 'class') {
+        var exp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+        if (exp.test(target.className)) {
+          result = target
+        }
+      } else if (type === 'id') {
+        var exp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+        if (exp.test(target.id)) {
+          result = target
+        }
+      } else if (type === 'tagName') {
+        var exp = new RegExp('(\\s+|^)' + str + '(\\s+|$)', 'i')
+        if (exp.test(target.tagName)) {
+          result = target
+        }
+      }
+      return result === undefined ? findThis(target.parentNode, str) : result
+    }
+    var eventHandler = function (evt) {
+      var evt = evt || event
+      var target = evt.target || evt.srcElement
+      var _this = findThis(target, sStr)
+      _this && callback.call(_this, evt)
+    }
+    for (var i = 0; i < _this.length; i++) {
+      if (window.addEventListener) {
+        _this[i].addEventListener(eventType, eventHandler)
+      } else if (window.attachEvent) {
+        _this[i].attachEvent('on' + eventType, eventHandler)
+      }
+    }
+    return _this
+  },
+  offset: function () {
+    function getOffset (dom) {
+      if (!dom) {
+        return {
+          top:0,
+          left:0
+        }
+      } else {
+        return {
+          top: dom.offsetTop + getOffset(dom.offsetParent).top,
+          left: dom.offsetLeft + getOffset(dom.offsetParent).left
+        }
+      }
+    }
+    return getOffset(this[0])
+  },
+  isInView: function (outSpace) {
+    outSpace = outSpace || 0
+    var scrollT = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+    var clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+    var offsetT = this.offset().top
+    if (scrollT + clientHeight >= offsetT + outSpace) {
+      return true
+    } else {
+      return false
+    }
+  },
+  find: function (str) {
+    return new DomOperate(str, this[0])
+  }
+}
+// class methods
+var $lMethods = {
+  ajax: function (obj) {
+    var xml, paramsStr = ''
+    function formatParams (params, pre) {
+      var str = '', pre = pre || ''
+      var a = pre ? true : false
+      for (var i in params) {
+        if (params.hasOwnProperty(i)) {
+          if (typeof params[i] === 'object') {
+            str += formatParams(params[i], pre + (a ? '[' : '') + i + (a ? ']' : ''))
+          } else {
+            str += pre + (a ? '[' : '') + i + (a ? ']' : '') + '=' + encodeURIComponent(params[i]) + '&'
+          }
+        }
+      }
+      return str
+    }
+    paramsStr = formatParams(obj.params).slice(0, -1)
+    if (obj.method === 'jsonp') {
+      var script = document.createElement('script')
+      script.onerror = script.onabort = function () {
+        obj.error && obj.error()
+      }
+      var jsonp = obj.jsonp || 'callback'
+      var jsonpCallback = obj.jsonpCallback || 'n' + Math.random().toString(26).slice(2)
+      window[jsonpCallback] = function (res) {
+        obj.success(res)
+      }
+      var jsonpStr = (paramsStr ? "&" : '') + jsonp + '=' + jsonpCallback
+      script.src = obj.url + '?' + paramsStr + jsonpStr
+      document.getElementsByTagName('head')[0].appendChild(script)
+    } else {
+      if (window.XMLHttpRequest) {
+        xml = new XMLHttpRequest()
+      } else {
+        xml = new ActiveXObject('Microsoft.XMLHTTP')
+      }
+      if (obj.method === 'get') {
+        xml.open("get", obj.url + '?' + paramsStr, true)
+      } else if(obj.method === 'post') {
+        xml.open("post", obj.url, true)
+      }
+      xml.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+      xml.onreadystatechange = function () {
+        if (xml.readyState == 4) {
+          if (xml.status == 200 || xml.status == 304) {
+            obj.success && obj.success(xml.responseText)
+          } else {
+            obj.error && obj.error()
+          }
+        }
+      xml.send(obj.method === 'post' ? paramsStr : '')
+      }
+    }
+  },
+  iev: function () {
+    var info = navigator.userAgent
+    var reg = /msie \d+/i
+    var result = reg.exec(info)
+    return !result ? undefined : parseInt(result[0].split(' ')[1])
+  },
+  cookie: function () {
+    var key = arguments[0]
+    var value = arguments[1]
+    var day = arguments[2]
+    if (arguments.length > 1) {
+      var time = new Date()
+      var year = time.getFullYear()
+      var date = time.getDate()
+      if (day === 'forever') {
+        time.setFullYear(year + 100)
+      } else {
+        time.setDate(date + day)
+      }
+      document.cookie = key + '=' + value + (day ? ';expires=' + time.toGMTString() : '')
+    } else {
+      var reg = new RegExp(key + '=' + '[^;=]*')
+      return document.cookie.match(reg) && document.cookie.match(reg)[0].split('=')[1]
+    }
+  },
+  open: function (url) {
+    var id = 'n256' + Math.random().toString(26).slice(2)
+    var a = document.createElement('a')
+    a.href = url
+    a.id = id
+    a.target = '_blank'
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    setTimeout(function () {
+      document.getElementById(id).click()
+    }, 0)
+  },
+  parseTime: function (time) {
+    function format(num) {
+      return num >= 10 ? num : '0' + num
+    }
+    var time = new Date(time)
+    var year = time.getFullYear()
+    var month = time.getMonth() + 1
+    var date = time.getDate()
+    var hours = time.getHours()
+    var minus = time.getMinutes()
+    var seconds = time.getSeconds()
+    return format(month) + '月' + format(date) + '日 ' + format(hours) + ':' + format(minus)
+  }
+}
+for (var i in $lMethods) {
+  if ($lMethods.hasOwnProperty(i)) {
+    $l[i] = $lMethods[i]
+  }
+}
+// NewsModule class
+function NewsModule (params) {
+  // default params handle
+  this.adsenseid = params.adsenseid
+  this.newsAdsenseid = params.newsAdsenseid
+  this.statisticsInterval = params.statisticsInterval || 1000
+  this.tabData = params.tabData || [['头条', 'toutiao']]
+  this.newsNumPer = params.newsNumPer || 18
+  this.newsNumFirst = params.newsNumFirst || 18
+  this.newsRadio = params.newsRadio || 3
+  this.showAd = params.showAd === false ? false : true
+  this.newsOrigin = params.newsOrigin || 'dongfang'
+  this.instance = params.instance || 0
+  this.adConfig = params.adConfig || {"baidu": 0.3, "360": 0.7}
+  this.replace360Ad = params.replace360Ad === false ? false : true
+  this.loadPage = params.loadPage || 5
+  this.reloadInterval = params.reloadInterval || 3000
+  this.reloadTimes = params.reloadTimes || 5
+  this.maxPage = params.maxPage || 10
+  this.isShowTab = params.isShowTab === false ? false : true
+  this.baiduAdUrl = params.baiduAdUrl || 'ads/baiduAd.html'
+  this.topInstance = params.topInstance || 0
+  this.baiduAdId = params.baiduAdId || 'u3433620'
+  this.dongfangNewsId = params.dongfangNewsId || '02151'
+  this._360ccId = params._360ccId || "OBHnX7"
+  this._360adId = params._360adId || 'mCzFYt'
+  // computed attr
+  this.newsBuffer = []
+  this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRadio + 1)
+  this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRadio + 1)
+  if (!params.adsenseid || !params.newsAdsenseid) {
+    console.error('adsenseid, newsAdsenseid is both required')
+  }
+  this.state = {
+    activeIndex: 0,
+    pagesList: [0]
+  }
+  this.init()
+}
+NewsModule.prototype = {
+  constructor: NewsModule,
+  createLoadNotice: function () {
+    var div = document.createElement('div')
+    var p = document.createElement('p')
+    div.className = 'n256-news-loadnotice'
+    div.id = 'n256-news-loadnotice'
+    div.innerHTML = '加载中...'
+    p.className = 'n256-load-more-btn hide btn'
+    p.id = 'n256-load-more-btn'
+    p.innerHTML = '点击加载更多'
+    $l('#n256-news-container')[0].appendChild(div)
+    $l('#n256-news-container')[0].appendChild(p)
+  },
+  createNewsTop: function () {
+    var _this = this
+    var container = document.createElement('div')
+    container.className = 'n256-news-top'
+    container.id = 'n256-news-top'
+    var content = '<div id="n256-news-top-ad" class="n256-news-top-ad">' +
+    '</div>' +
+    '<div id="n256-news-top-list" class="n256-news-top-list">' +
+    '<h4>热点排行</h4>' +
+    '</div>'
+    container.innerHTML = content
+    $l('#n256-news-container')[0].appendChild(container)
+    // 360橱窗
+    setTimeout(function () {
+      var obj = {"w":280,"showid": _this._360ccId,"rshowid":_this._360ccId,"inject":"inlay","layout":"magicCubeScene","style":"magicCube","row":"2","line":"2"}
+      obj.placeholderId = 'n256-news-top-ad'
+      typeof BANNER_SLIDER != 'undefined' && BANNER_SLIDER(obj);
+    }, 0)
+  },
+  createNoNewsNotice: function () {
+    var div1 = document.createElement('div')
+    div1.className = 'n256-nonews-notice hide'
+    div1.id = 'n256-nonews-notice'
+    div1.innerHTML = '<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>'
+    var div2 = document.createElement('div')
+    div2.className = 'n256-nonews-notice-hottop hide'
+    div2.id = 'n256-nonews-notice-hottop'
+    div2.innerHTML = '<a href="javascript:;" class="btn">暂无内容，点击重新加载</a>'
+    $l('#n256-news-container')[0].appendChild(div1)
+    $l('#n256-news-top')[0].appendChild(div2)
+  },
+  newsTopTemplate: function (itemData, i) {
+    var img = itemData.miniimg[0].src
+    var title = itemData.topic
+    var url = itemData.url
+    var content = '<a class="n256-news-top-list-item news-item" target=_blank href=' + url + ' data-url=' + url + ' data-num=' + (i + 1) + '>' +
+      '<div class="img">' +
+        '<img src="' + img + '" alt=""/>' +
+      '</div>' +
+      '<p class="title">' +
+        '<span>' + title + '</span>' +
+      '</p>' +
+      '</a>'
+    return content
+  },
+  singleImgNewsTemplate: function (item, i) {
+    var news = '<a class="n256-news-item-singleImg news-item"  target="_blank" href=' + item.url + ' data-url=' + item.url + '>' +
+      '<div class="n256-news-img">' +
+        '<img src="' + item.miniimg[0].src + '" alt="">' +
+      '</div>' +
+      '<div class="n256-news-content">' +
+        '<div class="content">' +
+        '<span class="title">' + item.topic + '</span>' +
+        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>' +
+        '</div>' +
+      '</div>' +
+    '</a>'
+    return news
+  },
+  multiImgNewsTemplate: function (item) {
+    var news = '<a class="n256-news-item-multiImg news-item"  target=_blank href=' + item.url + ' data-url=' + item.url + '>' +
+      '<span class="title">' + item.topic + '</span>' +
+      '<ul>' +
+        '<li><img src="' + item.miniimg[0].src + '" alt=""></li>' +
+        '<li><img src="' + item.miniimg[1].src + '" alt=""></li>' +
+        '<li><img src="' + item.miniimg[2].src + '" alt=""></li>' +
+      '</ul>' +
+      '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>' +
+      '</a>'
+    return news
+  },
+  baiduAdContainer: function (num) {
+    var ad = '<div class="ad-baidu" data-num="' + num + '" style="position:relative;"></div>'
+    return ad
+  },
+  _360AdContainer: function (num) {
+    var ad = '<div class="ad-360" data-num="' + num + '" style="position:relative;"></div>'
+    return ad
+  },
+  _360AdTemplate: function (adItem, num) {
+    if (!adItem) {
+      return ''
+    }
+    var ad
+    var adType = adItem.type
+    var clktk = adItem.clktk.join()
+    var imptk = adItem.imptk.join()
+
+    if (adType == 1 || adType == 4) {
+      ad = '<a class="n256-news-item-singleImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<div class="n256-news-img">' +
+          '<img src="' + adItem.img + '" alt="">' +
+        '</div>' +
+        '<div class="n256-news-content">' +
+          '<div class="content">' +
+          '<span class="title">' + adItem.title + '</span>' +
+          '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+          '</div>' +
+        '</div>' +
+      '</a>'
+    } else if (adType == 2) {
+      ad = '<a class="n256-news-item-multiImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<span class="title">' + (adItem.topic || adItem.title || adItem.desc) + '</span>' +
+        '<ul>' +
+          '<li><img src="' + adItem.assets[0].img + '" alt=""></li>' +
+          '<li><img src="' + adItem.assets[1].img + '" alt=""></li>' +
+          '<li><img src="' + adItem.assets[2].img + '" alt=""></li>' +
+        '</ul>' +
+        '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+        '</a>'
+    } else if (adType == 3) {
+      ad = '<a class="n256-news-item-bigImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<span class="title">' + (adItem.topic || adItem.title || adItem.desc) + '</span>' +
+        '<div class="big-img">' +
+          '<img src="' + adItem.img + '" alt=""/>' +
+        '</div>' +
+        '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+        '</a>'
+    }
+    return ad
+  },
+  baiduAdTemplate: function (num) {
+    var iframeId ='n256' + Math.random().toString(16).slice(2)
+    this.adStatistics(1, null, null, num, 1002)
+    return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + this.baiduAdId + '#' + iframeId + '"/>'
+  },
+  get360Ad: (function () {
+    var uid = Math.random().toString(26).slice(2)
+    var reqtimes = 1
+    return function (impct, num, callback) {
+      var _this = this
+      window.isNewsLoading = true
+      this.adStatistics(1, null, null, num, 1001)
+      $l.ajax({
+        method: 'jsonp',
+        params: {
+          of: 4,
+          newf: 1,
+          type: 1,
+          showid: this._360adId,
+          uid: uid,
+          reqtimes: reqtimes,
+          impct: impct
+        },
+        jsonp: 'jsonp',
+        jsonpCallback: 'n360ad',
+        url: 'http://show.g.mediav.com/s',
+        success: function (res) {
+          _this.adStatistics(2, null, null, num, 1001)
+          window.isNewsLoading = false
+          callback && callback(res.ads)
+          reqtimes++
+        },
+        error: function () {
+          window.isNewsLoading = false
+          callback && callback([])
+        }
+      })
+    }
+  })(),
+  getDongfangNews: (function () {
+    function getUid () {
+      var uid = $l.cookie('n256NewsUid');
+      if (!uid) {
+        uid = Math.random().toString(26).slice(2) + Math.random().toString(26).slice(2)
+        $l.cookie('n256NewsUid', uid, 'forever')
+      }
+      return uid
+    }
+    // api stauts handle
+    var startkey = '' // 上次请求数据中取
+    var newkey = '' // 上次请求数据中取
+    var idx =  0 // 已加载信息条数
+    var uid = getUid()
+    var isFirst = true
+    return function (callback, error, isReset) {
+      if (isReset) {
+        startkey = ''
+        newkey = ''
+        idx =  0
+      }
+      var _this = this
+      function getPosition (next) {
+        var position = $l.cookie('n256Position') || ''
+        if ($l.iev() <= 8) position = ' '
+        if (position) {
+          next && next(position)
+        } else {
+          $l.ajax({
+            method: 'jsonp',
+            url: 'http://guess.union2.50bang.org/adsapi/ci',
+            success: function (res) {
+              var position = res.c
+              next && next(position)
+              $l.cookie('n256Position', res.c)
+            },
+            error: function () {
+              next && next(position)
+            },
+            jsonp: 'jsonp',
+            jsonpCallback: 'n256position'
+          })
+        }
+      }
+      function getNews (position) {
+        _this.newsStatistics(1)
+        window.isNewsLoading = true
+        var page = _this.state.pagesList[_this.state.activeIndex] + 1
+        var newsnum = isFirst ? _this.newsNumFirst : _this.newsNumPer
+        isFirst = false
+        $l.ajax({
+          method: 'jsonp',
+          url: 'http://2345jsllq.dftoutiao.com/newsapi_pc/newsjp02',
+          params: {
+            type: _this.tabData[_this.state.activeIndex][1],
+            startkey: startkey,
+            newkey: newkey,
+            pgnum: page,
+            uid: uid,
+            idx: idx,
+            qid: _this.dongfangNewsId,
+            position: position,
+            newsnum: newsnum
+          },
+          success: function (res) {
+            // api stauts handle
+            _this.state.pagesList[_this.state.activeIndex]++
+            startkey = res.endkey
+            newkey = res.newkey
+            idx += res.data.length
+            // other mession
+            _this.newsStatistics(2)
+            window.isNewsLoading = false
+            callback && callback(res.data)
+            // 重置新闻排行距离底部距离
+            if ($l('#n256-news-top-content')[0]) {
+              $l('#n256-news-top-content')[0].style.paddingBottom = '0px'
+            }
+          },
+          error: function () {
+            window.isNewsLoading = false
+            error && error()
+          }
+        })
+      }
+      getPosition(getNews)
+    }
+  })(),
+  getNewsTop: function (callback, error) {
+    var _this = this
+    _this.newsStatistics(1)
+    $l.ajax({
+      url: 'http://newswifiapi.dftoutiao.com/newstop/change',
+      method: 'jsonp',
+      success: function (res) {
+        callback && callback(res.data)
+        _this.newsStatistics(2)
+      },
+      error: function () {
+        error && error()
+      },
+      params: {
+        qid: _this.dongfangNewsId,
+        ispc: 1,
+        newsnum: 20,
+        pgnum: 1
+      },
+      jsonp: 'jsonpcallback'
+    })
+  },
+  getNews: (function () {
+    var times = 0
+    return function (isReset) {
+      if (times >= this.reloadTimes) {
+        times = 0
+        return this.showNonewsNotice(true)
+      }
+      var _this = this
+      this.getDongfangNews(function (res) {
+        if (!res && !res.length) {
+          times++
+          setTimeout(function () {
+            _this.getNews()
+          }, _this.reloadInterval)
+        } else {
+          times = 0
+          _this.fillNews(res)
+          _this.showNonewsNotice(false)
+        }
+      }, function () {
+        times++
+        setTimeout(function () {
+          _this.getNews()
+        }, _this.reloadInterval)
+      }, isReset)
+    }
+  })(),
+  createTab: function () {
+    var tabContent = ''
+    for (var i = 0; i < this.tabData.length; i++) {
+      var sep = '|', imgUrl = this.tabData[i][2]
+      if (i === this.tabData.length - 1) {
+        sep = ''
+      }
+
+      tabContent += '<span data-type="' + this.tabData[i][1] +
+      '" data-index="' + i + '">' +
+      (imgUrl ? '<img class=tab-icon src="' + imgUrl + '" />' : '') +
+      this.tabData[i][0] + '</span>' +  sep
+      this.state.pagesList.push(0)
+    }
+
+    var div = document.createElement('div')
+    div.id = 'n256-news-tab'
+    div.className = 'n256-news-tab' + (this.isShowTab ? '' : ' hide')
+    div.innerHTML = tabContent
+    $l('#n256-news-container')[0].appendChild(div)
+  },
+  createNewsContainer: function () {
+    for(var i = 0; i < this.tabData.length; i++) {
+      var div = document.createElement('div')
+      div.id = 'n256-tab-item-' + this.tabData[i][1]
+      div.className = 'n256-tab-item'
+      $l('#n256-news-container')[0].appendChild(div)
+    }
+  },
+  fillNews: function (newsData, isClear) {
+    var adNum360 = 0
+    var content = '', type
+    var newsContainer = $l('.n256-tab-item')[this.state.activeIndex]
+    var _this = this
+    for (var i = 0; i < newsData.length; i++) {
+      // ad
+      var ad = ''
+      if ((i === 0 || i % 3 === 0) && this.showAd) {
+        var result = Math.random()
+        var percent = 0
+        for (var k in this.adConfig) {
+          if (this.adConfig.hasOwnProperty(k)) {
+            if (result < percent + this.adConfig[k] && result >= percent) {
+              type = k
+              break
+            }
+            percent += this.adConfig[k]
+          }
+        }
+        switch (type) {
+          case 'baidu': ad = this.baiduAdContainer(this.adsenseid); break
+          case '360': ad = this._360AdContainer(this.adsenseid); adNum360++;break
+        }
+        this.adsenseid++
+      }
+      // news
+      var news
+      if (newsData[i].miniimg.length >= 3) {
+        type = Math.random() >= 0.5 ? 'single' : 'multi'
+      } else {
+        type = 'single'
+      }
+      news = type == 'multi' ? this.multiImgNewsTemplate(newsData[i]) : this.singleImgNewsTemplate(newsData[i])
+      // pin jie
+      content += news
+      content += ad
+    }
+    if (isClear) {
+      newsContainer.innerHTML = ''
+    }
+    var div = document.createElement('div')
+    $l(div).attr('data-page', this.state.pagesList[this.state.activeIndex])
+    div.innerHTML = content
+    newsContainer.appendChild(div)
+    // 填充ad
+    // baidu ad
+    var adBaidu = $l(div).find('.ad-baidu')
+    for (var i = 0; i < adBaidu.length; i++) {
+      var num = $l(adBaidu[i]).attr('data-num')
+      adBaidu[i].innerHTML = this.baiduAdTemplate([num])
+    }
+    // 360 ad
+    var _this = this
+    if (!adNum360) return
+    var ad360 = $l(div).find('.ad-360')
+    var _360Num = []
+    for (var i = 0; i < ad360.length; i++) {
+      _360Num.push($l(ad360[i]).attr('data-num'))
+    }
+    this.get360Ad(adNum360, _360Num, function (ads) {
+      if (!ads) {
+        ads = []
+      }
+      var ad360 = $l(div).find('.ad-360')
+      // console.log('request 360num=' +adNum360 + ' 360广告位=' + ad360.length + ' 返回数量=' + ads.length)
+      for (var i = 0; i < ads.length; i++) {
+        ad360[i].innerHTML = _this._360AdTemplate(ads[i])
+      }
+      // 未显示部分展示为百度ad
+      if (!_this.replace360Ad) return
+      for (var i = ads.length; i < ad360.length; i++) {
+        var num = $l(ad360[i]).attr('data-num')
+        $l(ad360[i]).removeClass('ad-360').addClass('ad-baidu')
+        ad360[i].innerHTML = _this.baiduAdTemplate([num])
+      }
+    })
+  },
+  fillTopNews: function (news) {
+    news.length = 20
+    var content = ''
+    for (var i = 0; i < news.length; i++) {
+      content += this.newsTopTemplate(news[i], i)
+    }
+    var frag = document.createElement('div')
+    frag.id = 'n256-news-top-content'
+    frag.innerHTML = content
+    $l('#n256-news-top-list')[0].appendChild(frag)
+  },
+  showNonewsNotice: function (isShow) {
+    var loadNotice = $l('#n256-news-loadnotice')
+    var loadMore = $l('#n256-load-more-btn')
+    var noNewsNotice = $l('#n256-nonews-notice')
+    if (isShow) {
+      loadNotice.addClass('hide')
+      loadMore.addClass('hide')
+      noNewsNotice.removeClass('hide')
+    } else {
+      loadNotice.removeClass('hide')
+      loadMore.addClass('hide')
+      noNewsNotice.addClass('hide')
+    }
+  },
+  showBottomNotice: function (isShow) {
+    var loadNotice = $l('#n256-news-loadnotice')
+    var text = isShow ? '已经到底了，休息一会吧~' : '加载中...'
+    loadNotice[0].innerHTML = text
+  },
+  _360Statistics: function (urlList) {
+    function send (url) {
+      var newImg = new Image()
+      newImg.onload = newImg.onerror = newImg.onabort = function () {
+        newImg.onload = newImg.onerror = newImg.onabort = null
+      }
+      newImg.src = url
+    }
+    for (var i = 0; i < urlList.length; i++) {
+      send(urlList[i])
+    }
+  },
+  newsStatistics: function (type, nurl, nindex, hindex) {
+   $l.ajax({
+     method: 'jsonp',
+     url: '//guess.union2.50bang.org/trrs',
+     params: {
+       adsenseid: this.newsAdsenseid,
+       user: {
+         uid: ''
+       },
+       site: {
+         url: location.href,
+         referer: document.referrer
+       },
+       app: {},
+       device: {
+         userAgent: navigator.userAgent,
+         idfa: '',
+         imei: '',
+         deviceType: 0,
+         brand: '',
+         model: '',
+         os: '',
+         osv: '',
+         network: ''
+       },
+       data: {
+         type: 7,
+         action: 'news',
+         acode: type,
+         atime: parseInt(new Date().getTime() / 1000),
+         url: location.href,
+         rurl: document.referrer,
+         tab: this.tabData[this.state.activeIndex][1],
+         nid: '',
+         nurl: nurl || '',
+         nindex: hindex && hindex.length ?  '' : nindex || '',
+         hindex: hindex || '',
+         channelid: 1003
+       }
+     }
+   })
+  },
+  adStatistics: function (type, aurl, aindex, adsenseid, channelid) {
+    $l.ajax({
+      method: 'jsonp',
+      url: '//guess.union2.50bang.org/trrs',
+      params: {
+        adsenseid: this.newsAdsenseid,
+        user: {
+          uid: ''
+        },
+        site: {
+          url: location.href,
+          referer: document.referrer
+        },
+        app: {},
+        device: {
+          userAgent: navigator.userAgent,
+          idfa: '',
+          imei: '',
+          deviceType: 0,
+          brand: '',
+          model: '',
+          os: '',
+          osv: '',
+          network: ''
+        },
+        data: {
+          type: 7,
+          action: 'ad',
+          acode: type,
+          atime: parseInt(new Date().getTime() / 1000),
+          url: encodeURIComponent(location.href) || '',
+          rurl: encodeURIComponent(document.referrer) || '',
+          tab: this.tabData[this.state.activeIndex][1],
+          adsenseid: adsenseid || '',
+          aurl: encodeURIComponent(aurl || ''),
+          aindex: aindex || '',
+          channelid: channelid || ''
+        }
+      }
+    })
+  },
+  getAdPosition: function (evt) {
+    var offsetX = evt.offsetX
+    var offsetY = evt.offsetY
+    var target = evt.target || evt.srcElement
+    var offsetTop = target.offsetTop
+    var offsetLeft = target.offsetLeft
+    return {
+      x: offsetX + offsetTop,
+      y: offsetY + offsetLeft
+    }
+  },
+  init: function () {
+    this.createTab()
+    this.createNewsContainer()
+    this.createNewsTop()
+    this.createLoadNotice()
+    this.createNoNewsNotice()
+    var newsModule = this
+    // click lead more
+    $l('#n256-load-more-btn').on('click', function () {
+     newsModule.getNews()
+    })
+    // click reload btn
+    $l('#n256-nonews-notice').on('click', function () {
+      newsModule.getNews()
+    })
+    // click reload btn hottop
+    $l('#n256-nonews-notice-hottop').on('click', function () {
+      newsModule.getNewsTop(function newsTopLoadedCallback (res) {
+        res.length = 20
+        newsModule.fillTopNews(res)
+        $l('#n256-nonews-notice-hottop').addClass('hide')
+      }, function () {
+        $l('#n256-nonews-notice-hottop').removeClass('hide')
+      })
+    })
+    // click tab
+    $l('#n256-news-tab').on('click', 'span', clickTabHandle)
+    function clickTabHandle () {
+      var page = newsModule.state.pagesList[newsModule.state.activeIndex]
+      if (page >= newsModule.loadPage) {
+       $l('#n256-news-loadnotice').addClass('hide')
+       $l('#n256-load-more-btn').removeClass('hide')
+      } else {
+       $l('#n256-news-loadnotice').removeClass('hide')
+       $l('#n256-load-more-btn').addClass('hide')
+      }
+      var isvisited = $l(this).attr('isvisited')
+      var tabs = $l('#n256-news-tab').child('span')
+      var index = $l(this).attr('data-index')
+      var type = $l(this).attr('data-type')
+      $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab')
+      $l(tabs[index]).addClass('active-tab')
+      var tabs = $l('#n256-news-container').find('.n256-tab-item')
+      $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab-item')
+      $l(tabs[index]).addClass('active-tab-item')
+      newsModule.state.activeIndex = index
+      if (isvisited) {
+       return
+      } else if (!window.isNewsLoading) {
+      newsModule.getNews(true)
+      $l(this).attr('isvisited', 'true')
+      }
+      // loaded statistics
+      setTimeout(function () {
+       showStatisticsHandle()
+      }, 2000)
+    }
+     // scroll load
+     function scrollLoadHandle () {
+       var docHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+       var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+       var clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+       var spaceToBottom = docHeight - Math.ceil(scrollTop + clientHeight)
+       // 新闻排行底部距离控制
+       if (spaceToBottom <= newsModule.topInstance) {
+         if ($l('#n256-news-top-content')[0]) {
+           $l('#n256-news-top-content')[0].style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+         }
+       } else {
+         if ($l('#n256-news-top-content')[0]) {
+           $l('#n256-news-top-content')[0].style.paddingBottom = '0px'
+         }
+       }
+       if (newsModule.state.pagesList[newsModule.state.activeIndex] >= newsModule.maxPage) {
+         return newsModule.showBottomNotice(true)
+       } else if (newsModule.state.pagesList[newsModule.state.activeIndex] >= newsModule.loadPage){
+         newsModule.showBottomNotice(true)
+         $l('#n256-news-loadnotice').addClass('hide')
+         $l('#n256-load-more-btn').removeClass('hide')
+         return
+       }
+       if (spaceToBottom <= newsModule.instance) {
+        if (!window.isNewsLoading) {
+          newsModule.getNews()
+        }
+      }
+    }
+    if (window.addEventListener) {
+      window.addEventListener('scroll', scrollLoadHandle)
+    } else {
+      window.attachEvent('onscroll', scrollLoadHandle)
+    }
+    // statistics
+    // 360 ad click
+    var timeStart, timeEnd
+    $l('#n256-news-container').on('mousedown', '.ad-360', function (evt) {
+     timeStart = new Date().getTime()
+    })
+    $l('#n256-news-container').on('mouseup', '.ad-360', function (evt) {
+      if (evt.button === 2) return
+      var target = $l($l(this).child()[0])
+      var clktk = target.attr('data-clktk')
+      var timeEnd = new Date().getTime()
+      clktk = clktk.replace('__EVENT_TIME_START__', timeStart)
+      clktk = clktk.replace('__EVENT_TIME_END__', timeEnd)
+      clktk = clktk.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
+      clktk = clktk.replace('__OFFSET_Y__', newsModule.getAdPosition(evt).y)
+      clktk = clktk.split(',')
+      newsModule._360Statistics(clktk)
+      // 跳转链接处理
+      var url = target.attr('data-url')
+      url = url.replace('__EVENT_TIME_START__', timeStart)
+      url = url.replace('__EVENT_TIME_END__', timeEnd)
+      url = url.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
+      url = url.replace('__OFFSET_Y__', newsModule.getAdPosition(evt).y)
+      target.attr('href', url)
+     // location.href = url
+     // $l.open(url)
+    })
+    // $l('#n256-news-container').on('click', '.ad-360', function (evt) {
+    //   evt.preventDefault()
+    // })
+    // news click
+    $l('#n256-news-container').on('click', '.news-item', function (evt) {
+      if (evt.button === 2) return
+
+     var type = 4
+     var nurl = $l(this).attr('data-url')
+     var nindex = 0
+     var hindex = $l(this).attr('data-num')
+     var page = $l(this.parentNode).attr('data-page')
+     if (page >= 2) {
+       nindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+     } else {
+       nindex = $l(this).index()
+     }
+     newsModule.newsStatistics(type, [nurl], [nindex + 1], hindex ? [hindex] : '')
+     var url = $l(this).attr('data-url')
+     // location.href = url
+     //$l.open(url)
+    })
+    // ad click
+    function clickAdHandle (evt) {
+      var target = $l($l(this).child()[0])
+      var url = target.attr('data-url')
+      url = url.replace('__EVENT_TIME_START__', timeStart)
+      url = url.replace('__EVENT_TIME_END__', timeEnd)
+      url = url.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
+      url = url.replace('__OFFSET_Y__', newsModule.getAdPosition(evt).y)
+      var type = this.className.indexOf('ad-360') !== -1 ? '360' : 'baidu'
+      var aurl = url
+      var aindex
+      var page = $l(this.parentNode).attr('data-page')
+      var channelid = type === '360' ? '1001' : '1002'
+      if (page >= 2) {
+        aindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+      } else {
+        aindex = $l(this).index()
+      }
+      var adsenseid = $l(this).attr('data-num')
+      newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
+    }
+    $l('#n256-news-container').on('click', '.ad-360', function (evt) {
+      if (evt.button === 2) return
+
+      clickAdHandle.call(this, evt)
+    })
+    $l('#n256-news-container').on('click', '.ad-baidu', function () {
+      if (evt.button === 2) return
+
+      clickAdHandle.call(this)
+    })
+    // show statistics
+    function showStatisticsHandle () {
+      var container = $l($l('.n256-tab-item')[newsModule.state.activeIndex])
+      // var newsList = $l('#n256-news-container').find('.news-item')
+      var newsList = container.find('.news-item')
+      var newsTop = $l('#n256-news-top').find('.news-item')
+      var _360Ad = container.find('.ad-360')
+      var baiduAd = container.find('.ad-baidu')
+      for (var i = 0; i < newsList.length; i++) {
+        var isvisited = $l(newsList[i]).attr('isvisited')
+        if ($l(newsList[i]).isInView() && !isvisited) {
+          // 参数处理
+          var nindex = 0
+          var hindex = $l(newsList[i]).attr('data-num')
+          var nurl = $l(newsList[i]).attr('data-url')
+          var page = $l(newsList[i].parentNode).attr('data-page')
+          if (page >= 2) {
+            nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            nindex = $l(newsList[i]).index()
+          }
+          // console.log('news show = ' + (nindex + 1))
+          // send statistics
+          newsModule.newsBuffer.push({nurl: nurl, nindex: nindex + 1, hindex: hindex})
+          $l(newsList[i]).attr('isvisited', 'true')
+        }
+      }
+      for (var i = 0; i < newsTop.length; i++) {
+        var isvisited = $l(newsTop[i]).attr('isvisited')
+        if ($l(newsTop[i]).isInView() && !isvisited) {
+          // 参数处理
+          var hindex = $l(newsTop[i]).attr('data-num')
+          var nurl = $l(newsTop[i]).attr('data-url')
+          var page = $l(newsTop[i].parentNode).attr('data-page')
+          // console.log('top show = ' + hindex)
+          // send statistics
+          newsModule.newsBuffer.push({nurl: nurl, nindex: '', hindex: hindex})
+          $l(newsTop[i]).attr('isvisited', 'true')
+        }
+      }
+      for (var i = 0; i < _360Ad.length; i++) {
+        var item = $l(_360Ad[i])
+        var isvisited = item.attr('isvisited')
+        if (item.isInView() && !isvisited && item.child().length) {
+          // 参数处理
+          var aurl = item.attr('data-url')
+          var adsenseid = item.attr('data-num')
+          var aindex = 0
+          var channelid = 1001
+          var page = $l(item[0].parentNode).attr('data-page')
+          if (page >= 2) {
+            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            aindex = item.index()
+          }
+          // console.log('360 ad show = ' + (aindex + 1))
+          // send statistics
+          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+          if (item.child()[0]) {
+            var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
+            newsModule._360Statistics(imptk)
+          }
+          item.attr('isvisited', 'true')
+        }
+      }
+      for (var i = 0; i < baiduAd.length; i++) {
+        var item = $l(baiduAd[i])
+        var isvisited = item.attr('isvisited')
+        if (item.isInView() && !isvisited && item[0].offsetHeight >= 10) {
+          // 参数处理
+          var aurl = item.attr('data-url')
+          var adsenseid = item.attr('data-num')
+          var aindex = 0
+          var channelid = 1002
+          var page = $l(baiduAd[i].parentNode).attr('data-page')
+          if (page >= 2) {
+            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            aindex = item.index()
+          }
+          // console.log('baidu ad show = ' + (aindex + 1))
+          // send statistics
+          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+          item.attr('isvisited', 'true')
+        }
+      }
+    }
+    if (window.addEventListener) {
+      window.addEventListener('scroll', showStatisticsHandle)
+    } else {
+      window.attachEvent('onscroll', showStatisticsHandle)
+    }
+    // send news show statistics
+    setInterval(function () {
+      var nurl_n = []
+      var nurl_h = []
+      var nindex = []
+      var hindex = []
+      for (var i = 0; i < newsModule.newsBuffer.length; i++) {
+        if (newsModule.newsBuffer[i].hindex) {
+          nurl_h.push(newsModule.newsBuffer[i].nurl)
+          hindex.push(newsModule.newsBuffer[i].hindex)
+        } else {
+          nurl_n.push(newsModule.newsBuffer[i].nurl)
+          nindex.push(newsModule.newsBuffer[i].nindex)
+        }
+      }
+      if (nurl_n.length && nindex.length) {
+        newsModule.newsStatistics(3, nurl_n, nindex)
+      }
+      if (nurl_h.length && hindex.length) {
+        newsModule.newsStatistics(3, nurl_h, null, hindex)
+      }
+      newsModule.newsBuffer = []
+    }, newsModule.statisticsInterval)
+
+    // dom load handle
+    $l('#n256-news-tab').child()[0].click()
+    newsModule.getNewsTop(function newsTopLoadedCallback (res) {
+      res.length = 20
+      newsModule.fillTopNews(res)
+      $l('#n256-nonews-notice-hottop').addClass('hide')
+    }, function () {
+      $l('#n256-nonews-notice-hottop').removeClass('hide')
+    })
+    function newsTopLoadedCallback (res) {
+      res.length = 20
+      newsModule.fillTopNews(res)
+    }
+    // news top scroll fixed
+    var fixedControl = function () {
+      var container = $l('#n256-news-top-list')
+      var target = $l('#n256-news-top-content')
+      if (!target.length) return
+      var targetH = target[0].offsetHeight
+      var offsetT = container.offset().top
+      var scrollT = window.pageYOffset || (document.documentElement || document.body).scrollTop
+      var clientH = window.innerHeight || (document.documentElement || document.body).clientHeight
+      if (targetH + offsetT <= scrollT + clientH) {
+        target.addClass('fixed-position')
+      } else {
+        target.removeClass('fixed-position')
+      }
+    }
+    if (window.addEventListener) {
+      window.addEventListener('scroll', fixedControl)
+    } else {
+      window.attachEvent('onscroll', fixedControl)
+    }
+  }
+}

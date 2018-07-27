@@ -1,1 +1,1440 @@
-"use strict";var _typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t};"undefined"==typeof console&&(window.console={log:function(){},error:function(){}});var $l=function(t,e){return new DomOperate(t,e)};function DomOperate(t,e){for(var i=this.init(t,e),n=0;n<i.length;n++)this[n]=i[n];this.length=i.length}DomOperate.prototype={constructor:DomOperate,init:function(t,e){var i=this.strType(t);if("id"===i){var n=document.getElementById(t.slice(1));return n?[n]:[]}if("tag"===i)return(e||document).getElementsByTagName(t);if("class"===i){for(var s=(e||document).getElementsByTagName("*"),a=[],o=new RegExp("(\\s+|^)"+t.slice(1)+"(\\s+|$)","i"),r=0;r<s.length;r++)o.test(s[r].className)&&a.push(s[r]);return a}return"dom"===i?[t]:"domArray"===i?t:[]},strType:function(t){if("object"===(void 0===t?"undefined":_typeof(t))){if(t instanceof Array)return"domArray";if(t.ownerDocument===document)return"dom"}else{if("string"!=typeof t)return null;if(/^#.+/.test(t))return"id";if(/^\..+/.test(t))return"class";if(/^[^.#]/.test(t))return"tagName"}},addClass:function(t){for(var e=0;e<this.length;e++){if($l(this[e]).hasClass(t))return;this[e].className+=" "+t}return this},removeClass:function(t){for(var e=new RegExp("\\s*"+t),i=0;i<this.length;i++)this[i].className=this[i].className.replace(e,"");return this},hasClass:function(t){var e=new RegExp("(\\s+|^)+"+t+"(\\s+|$)");return-1!=this[0].className.search(e)},hasAttr:function(t){return null!==this[0].getAttribute(t)},attr:function(){if(this[0])return 1==arguments.length?this[0].getAttribute(arguments[0]):(this[0].setAttribute(arguments[0],arguments[1]),this)},child:function(t){for(var e=this[0].childNodes||[],i=[],n=0;n<e.length;n++)t?e[n].id!=t.slice(1)&&e[n].className!=t.slice(1)&&e[n].nodeName.toLowerCase()!=t||i.push(e[n]):e[n].tagName&&i.push(e[n]);return $l(i)},eq:function(t){return $l(this[t])},trigger:function(e){var i;try{i=new Event(e,{bubbles:!0})}catch(t){document.createEvent&&(i=document.createEvent("Event")).initEvent(e,!0,!1)}for(var t=0;t<this.length;t++)this[t].dispatchEvent?this[t].dispatchEvent(i):this[t].fireEvent("on"+e)},index:function(t){var e=$l(this[0].parentNode).child();if(parseInt(t))return $l(e[t]);for(var i=0;i<e.length;i++)if(this[0]===e[i])return i},on:function(t,i,n){var a=this;2==arguments.length&&(n=arguments[1],i="");for(var e=function(t){var e=function t(e,i){var n;if(e===document.body)return null;i||(n=e);var s=a.strType(i);"class"===s?new RegExp("(\\s+|^)"+i.slice(1)+"(\\s+|$)").test(e.className)&&(n=e):"id"===s?new RegExp("(\\s+|^)"+i.slice(1)+"(\\s+|$)").test(e.id)&&(n=e):"tagName"===s&&new RegExp("(\\s+|^)"+i+"(\\s+|$)","i").test(e.tagName)&&(n=e);return void 0===n?t(e.parentNode,i):n}((t=t||event).target||t.srcElement,i);e&&n.call(e,t)},s=0;s<a.length;s++)window.addEventListener?a[s].addEventListener(t,e):window.attachEvent&&a[s].attachEvent("on"+t,e);return a},offset:function(){return function t(e){return e?{top:e.offsetTop+t(e.offsetParent).top,left:e.offsetLeft+t(e.offsetParent).left}:{top:0,left:0}}(this[0])},isInView:function(t,e){var i,n,s,a,o,r=!1;return n=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop,a=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight,o=this.offset().top,t?(i=this[0].offsetParent.scrollTop,s=this[0].offsetParent.clientHeight,this[0].offsetTop+e<=i+s&&o-i+e<=n+a&&(r=!0)):o+e<=n+a&&(r=!0),r},find:function(t){return new DomOperate(t,this[0])}};var $lMethods={ajax:function(e){var t,i;if(i=function t(e,i){var n="",s=!!(i=i||"");for(var a in e)e.hasOwnProperty(a)&&("object"===_typeof(e[a])?n+=t(e[a],i+(s?"[":"")+a+(s?"]":"")):n+=i+(s?"[":"")+a+(s?"]":"")+"="+encodeURIComponent(e[a])+"&");return n}(e.params).slice(0,-1),"jsonp"===e.method){var n=document.createElement("script");n.onerror=n.onabort=function(){n.loaded||(this.loaded=!0,e.error&&e.error())};var s=e.jsonp||"callback",a=e.jsonpCallback||"n"+Math.random().toString(26).slice(2);window[a]=function(t){n.loaded=!0,e.success(t)};var o=(i?"&":"")+s+"="+a;n.src=e.url+"?"+i+o,document.getElementsByTagName("head")[0].appendChild(n),setTimeout(function(){n.loaded||(window[a]=null,n.loaded=!0,e.error&&e.error())},e.timeout||3e3)}else t=window.XMLHttpRequest?new XMLHttpRequest:new ActiveXObject("Microsoft.XMLHTTP"),"get"===e.method?t.open("get",e.url+"?"+i,!0):"post"===e.method&&t.open("post",e.url,!0),t.setRequestHeader("Content-type","application/x-www-form-urlencoded"),t.onreadystatechange=function(){4==t.readyState&&(200==t.status||304==t.status?e.success&&e.success(t.responseText):e.error&&e.error()),t.send("post"===e.method?i:null)}},iev:function(){var t=navigator.userAgent,e=/msie \d+/i.exec(t);return e?parseInt(e[0].split(" ")[1]):void 0},cookie:function(){var t=arguments[0],e=arguments[1],i=arguments[2];if(!(1<arguments.length)){var n=new RegExp(t+"=[^;=]*");return document.cookie.match(n)&&document.cookie.match(n)[0].split("=")[1]}var s=new Date,a=s.getFullYear(),o=s.getDate();"forever"===i?s.setFullYear(a+100):s.setDate(o+i),document.cookie=t+"="+e+(i?";expires="+s.toGMTString():"")},open:function(t){var e="n256"+Math.random().toString(26).slice(2),i=document.createElement("a");i.href=t,i.id=e,i.target="_blank",i.style.display="none",document.body.appendChild(i),setTimeout(function(){document.getElementById(e).click()},0)},parseTime:function(t){function e(t){return 10<=t?t:"0"+t}(t=new Date(t)).getFullYear();var i=t.getMonth()+1,n=t.getDate(),s=t.getHours(),a=t.getMinutes();t.getSeconds();return e(i)+"月"+e(n)+"日 "+e(s)+":"+e(a)}};for(var i in $lMethods)$lMethods.hasOwnProperty(i)&&($l[i]=$lMethods[i]);function NewsModule(t){var e;this.containerId=t.containerId,this.adsenseid=t.adsenseid,this.newsAdsenseid=t.newsAdsenseid,this.statisticsInterval=t.statisticsInterval||1e3,this.tabData=t.tabData||[["头条","toutiao"]],this.newsNumPer=t.newsNumPer||18,this.newsNumFirst=t.newsNumFirst||18,this.newsRadio=t.newsRadio||3,this.showAd=!1!==t.showAd,this.newsOrigin=t.newsOrigin||"dongfang",this.instance=t.instance||0,this.adConfig=t.adConfig||{baidu:.3,360:.7},this.replace360Ad=!1!==t.replace360Ad,this.loadPage=t.loadPage||5,this.reloadInterval=t.reloadInterval||3e3,this.reloadTimes=t.reloadTimes||3,this.maxPage=t.maxPage||10,this.isShowTab=!1!==t.isShowTab,this.baiduAdUrl=t.baiduAdUrl||"./ads/baiduAd.html",this.topInstance=t.topInstance||0,this.showSpace=t.showSpace||0,this.changeTabWay=t.changeTabWay||1,this.actionAtBottom=t.actionAtBottom||"load",this.containerHeight=t.containerHeight||0,this.newsMode=t.newsMode||3,this.adMode=t.adMode||2,this.forceStretchNewsImg=!0===t.forceStretchNewsImg,this.forceStretchAdImg=!0===t.forceStretchAdImg,this._360ccp=t._360ccp||"top",this.isShow360cc=t.isShow360cc&&!0,this.baiduAdId=t.baiduAdId||"u3433620",this.dongfangNewsId=t.dongfangNewsId||"02151",this._360ccId=t._360ccId||"OBHnX7",this._360adId=t._360adId||"mCzFYt",this.scrollInterval=t.scrollInterval||500,this.scrollTimes=t.scrollTimes||6,this.scrollOptimizeMethod=t.scrollOptimizeMethod||"times",this.hideInfo=t.hideInfo&&!0,this.scrollPosition=t.scrollPosition||"lastPosition",this.isShowFourImg=t.isShowFourImg&&!0,this.isShowBottomNotice=!1!==t.isShowBottomNotice,this.firstAdPosition=t.firstAdPosition||2,this.update=t.update,this.baiduAdIds=t.baiduAdIds||{1:{id:this.baiduAdId,precent:1}},this.baiduccId=t.baiduccId||"",this.isShowBaiducc=t.isShowBaiducc&&!0,this.baiduccPosition=t.baiduccPosition||"top",this.loadDelay=t.loadDelay||200,this.loadInstance=t.loadInstance||300,this.adInsertWay=t.adInsertWay||"ratio",this.showRefreshBtn=t.showRefreshBtn&&!0,this.newsBuffer={nurl:[],nindex:[]},this.target=$l("#"+this.containerId)[0],this.adNumPer=parseInt((this.newsNumPer-1)/this.newsRadio+1),this.adNumFirst=parseInt((this.newsNumFirst-1)/this.newsRadio+1),this.hash=Math.random().toFixed(6).slice(2),this.state={activeIndex:0,pagesList:[],adsenseidList:[],scrollPosition:[]},t.adsenseid||console.error("adsenseid is required"),t.newsAdsenseid||console.error("newsAdsenseid is required"),this.containerId||console.error("containerId is required"),t.dongfangNewsId||console.error("dongfangNewsId is required"),this.isShow360cc&&!t._360ccId&&console.error("_360ccId is required"),this.isShowBaiducc&&!t.baiduccId&&console.error("baiduccId is required"),this.adConfig[360]&&!t._360adId&&console.error("_360adId is required"),this.adConfig.baidu&&!(t.baiduAdId||t.baiduAdIds[1]||t.baiduAdIds[3]||t.baiduAdIds[4])&&console.error("baiduAdIds is required"),$l.iev()<=8&&(delete this.baiduAdIds[3],delete this.baiduAdIds[4],this.baiduAdIds[1].precent=1),this.containerHeight&&$l(this.target).addClass("n256-tab-title-fixed"),this.isShow360cc&&"top"===this._360ccp&&this.create360cc(),this.isShowBaiducc&&"top"===this.baiduccPosition&&this.createBaiducc(),this.createTab(),this.createNewsContainer(),this.newsContainer=$l(this.target).find(".n256-tab-item-container")[0],this.isShow360cc&&"bottom"===this._360ccp&&this.create360cc(),this.isShowBaiducc&&"bottom"===this.baiduccPosition&&this.createBaiducc(),"load"===this.actionAtBottom&&!0===this.isShowBottomNotice&&(this.createLoadNotice(),this.createNoNewsNotice()),this.bindEvent(),this.bindStatisticsEvent(),this.containerHeight&&(this.newsContainer.style.height=this.containerHeight+"px",this.newsContainer.style.overflow="scroll",this.newsContainer.style.overflowX="hidden"),1===this.changeTabWay?e="mouseover":2===this.changeTabWay&&(e="click"),t.init&&t.init(this.newsContainer);var i=this,n=!1;function s(){n||$l("#"+i.containerId).offset().top-(window.pageYOffset||document.documentElement.scrollTop)<=(window.innerHeight||document.documentElement.clientHeight)+i.loadInstance&&($l(i.target).find(".n256-news-tab").child().eq(0).trigger(e),n=!0,window.addEventListener?window.removeEventListener("scroll",s):window.detachEvent("onscroll",s))}window.addEventListener?window.addEventListener("scroll",s):window.attachEvent("onscroll",s),setTimeout(function(){s()},this.loadDelay)}NewsModule.prototype={constructor:NewsModule,createLoadNotice:function(){var t=document.createElement("div"),e=document.createElement("p");t.className="n256-news-loadnotice",t.innerHTML="加载中...",e.className="n256-load-more-btn hide btn",e.innerHTML="点击加载更多",this.newsContainer.appendChild(t),this.newsContainer.appendChild(e)},create360cc:function(){var t=document.createElement("div"),e="n256"+Math.random().toString(26).slice(0,10),i=this._360ccId,n=document.createElement("script");n.src="//static.mediav.com/js/mvf_pm_slider.js",n.setAttribute("charset","utf-8"),t.id=e,this.target.appendChild(t),n.onload=function(){var t={w:280,showid:i,rshowid:i,inject:"inlay",layout:"magicCubeScene",style:"magicCube",row:"2",line:"2"};t.placeholderId=e,"undefined"!=typeof BANNER_SLIDER&&BANNER_SLIDER(t)},document.body.appendChild(n)},createBaiducc:function(){var t=document.createElement("div"),e="n256"+Math.random().toString(16).slice(2),i=this.baiduccId;t.className="baiducc",t.innerHTML='<iframe frameborder="0" width="100%" id="'+e+'" scrolling="no" src="'+this.baiduAdUrl+"?id="+i+"#"+e+'"/>',this.target.appendChild(t)},createNoNewsNotice:function(){var t=document.createElement("div");t.className="n256-nonews-notice hide",t.innerHTML='<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>',this.newsContainer.appendChild(t)},singleImgNewsTemplate:function(t,e){return'<a class="n256-news-item-singleImg news-item"  target="_blank" href='+t.url+" data-url="+t.url+'><div class="n256-news-img"><img src="'+t.miniimg[0].src+'" alt="" style="height:'+(this.forceStretchNewsImg?"100%":"auto")+'"></div><div class="n256-news-content"><div class="content"><span class="title">'+t.topic+"</span>"+(this.hideInfo?"":'<p class="n256-news-info"><span class="type">'+t.tpch+"</span><span>"+t.source+"</span><span>"+$l.parseTime(1e3*parseInt(t.date))+"</span></p>")+"</div></div></a>"},multiImgNewsTemplate:function(t){return'<a class="n256-news-item-multiImg news-item"  target=_blank href='+t.url+" data-url="+t.url+'><span class="title">'+t.topic+'</span><ul><li><img src="'+t.miniimg[0].src+'" alt="" style="height:'+(this.forceStretchNewsImg?"100%":"auto")+'"></li><li><img src="'+t.miniimg[1].src+'" alt="" style="height:'+(this.forceStretchNewsImg?"100%":"auto")+'"></li><li><img src="'+t.miniimg[2].src+'" alt="" style="height:'+(this.forceStretchNewsImg?"100%":"auto")+'"></li>'+(this.isShowFourImg?"<li>"+(t.miniimg[3]?'<img src="'+t.miniimg[3].src+'" alt="" style="height:'+(this.forceStretchNewsImg?"100%":"auto")+'">':'<span class="check-info">查看详情>></span>')+"</li>":"")+"</ul>"+(this.hideInfo?"":'<p class="n256-news-info"><span class="type">'+t.tpch+"</span><span>"+t.source+"</span><span>"+$l.parseTime(1e3*parseInt(t.date))+"</span></p>")+"</a>"},baiduAdContainer:function(t){return'<div class="ad-baidu" data-num="'+t+'" style="position:relative;"></div>'},_360AdContainer:function(t){return'<div class="ad-360" data-num="'+t+'" style="position:relative;"></div>'},_360AdTemplate:function(t,e){if(!t)return"";var i,n=t.type,s=t.clktk.join(),a=t.imptk.join();return 1==n||4==n||1==this.adMode?i='<a class="n256-news-item-singleImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+s+" data-imptk="+a+'><div class="n256-news-img"><img src="'+(t.img||t.assets[0].img)+'" alt="" style="height:'+(this.forceStretchAdImg?"100%":"auto")+'"></div><div class="n256-news-content"><div class="content"><span class="title">'+t.title+'</span><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></div></div></a>":2==n?i='<a class="n256-news-item-multiImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+s+" data-imptk="+a+'><span class="title">'+(t.topic||t.title||t.desc)+'</span><ul><li><img src="'+t.assets[0].img+'" alt=""></li><li><img src="'+t.assets[1].img+'" alt=""></li><li><img src="'+t.assets[2].img+'" alt=""></li></ul><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></a>":3==n&&(i='<a class="n256-news-item-bigImg"  target=_blank href='+t.curl+" data-url="+t.curl+" data-clktk="+s+" data-imptk="+a+'><span class="title">'+(t.topic||t.title||t.desc)+'</span><div class="big-img"><img src="'+t.img+'" alt=""/></div><p class="n256-news-info"><span class="type">广告</span><span>'+t.src+"</span></p></a>"),i},baiduAdTemplate:function(){var o=0,r=[];return function(t){if(!r.length){for(var e in this.baiduAdIds)this.baiduAdIds.hasOwnProperty(e)&&r.push(this.baiduAdIds[e].id);0===r.length&&r.push(this.baiduAdId)}var i="n256"+Math.random().toString(16).slice(2),n=Math.random(),s=0,a="";if("ratio"===this.adInsertWay){for(var e in this.baiduAdIds)if(this.baiduAdIds.hasOwnProperty(e)){if(s<=n&&n<this.baiduAdIds[e].precent+s){a=this.baiduAdIds[e].id;break}s+=this.baiduAdIds[e].precent}a=a||this.baiduAdId}else"order"===this.adInsertWay&&(a=r[o],o=++o>r.length-1?0:o);return this.adStatistics(1,null,null,t,1002),'<iframe frameborder="0" width="100%" id="'+i+'" scrolling="no" src="'+this.baiduAdUrl+"?id="+a+"#"+i+'"/>'}}(),get360Ad:function(){var s=Math.random().toString(26).slice(2),a=1;return function(t,e,i){var n=this;window["isNewsLoading"+this.hash]=!0,this.adStatistics(1,null,null,e,1001),$l.ajax({method:"jsonp",params:{of:4,newf:1,type:1,showid:n._360adId,uid:s,reqtimes:a,impct:t},jsonp:"jsonp",jsonpCallback:"n360ad",url:"//show.g.mediav.com/s",success:function(t){n.adStatistics(2,null,null,e,1001),window["isNewsLoading"+n.hash]=!1,i&&i(t.ads),a++},error:function(){window["isNewsLoading"+n.hash]=!1,i&&i([])}})}}(),getDongfangNews:function(){var t,r="",d="",c=0,l=((t=$l.cookie("n256NewsUid"))||(t=Math.random().toString(26).slice(2)+Math.random().toString(26).slice(2),$l.cookie("n256NewsUid",t,"forever")),t),n=!0,h=!0;return function(s,a,t){var i,e,o=this;t&&(d=r="",h=!(c=0),o.state.pagesList[o.state.activeIndex]=0,$l(this.target).find(".n256-tab-item")[this.state.activeIndex].innerHTML=""),i=function(t){o.newsStatistics(1),window["isNewsLoading"+o.hash]=!0;var e=o.state.pagesList[o.state.activeIndex]+1,i=h?o.newsNumFirst:o.newsNumPer;h=!1;var n="";switch(o.newsOrigin){case"dongfang":n="//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02";break;case"yingshi":n="//2345yingshi.dftoutiao.com/newsapi_pc/newsjp02";break;default:n="//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02"}$l.ajax({method:"jsonp",url:n,params:{type:o.tabData[o.state.activeIndex][1],startkey:r,newkey:d,pgnum:e,uid:l,idx:c,qid:o.dongfangNewsId,position:t,newsnum:i},success:function(t){o.state.pagesList[o.state.activeIndex]++,r=t.endkey,d=t.newkey,c+=t.data.length,o.newsStatistics(2),window["isNewsLoading"+o.hash]=!1,s&&s(t.data)},error:function(){window["isNewsLoading"+o.hash]=!1,a&&a()}})},e=$l.cookie("n256Position")||"",!n||e?i&&i(e):($l.ajax({method:"jsonp",url:"//guess.union2.50bang.org/adsapi/ci",success:function(t){var e=t.c;i&&i(e),$l.cookie("n256Position",t.c)},error:function(){i&&i(e)},jsonp:"jsonp",jsonpCallback:"n256position"}),n=!1)}}(),getNews:function(){var i=0;return function(t){var e=this;this.getDongfangNews(function(t){if(t||t.length)i=0,e.fillNews(t),e.showNonewsNotice(!1);else{if(++i>=e.reloadTimes)return i=0,e.showNonewsNotice(!0);setTimeout(function(){e.getNews()},e.reloadInterval)}},function(){if(++i>=e.reloadTimes)return i=0,void e.showNonewsNotice(!0);setTimeout(function(){e.getNews()},e.reloadInterval)},t)}}(),createTab:function(){for(var t="",e=0;e<this.tabData.length;e++){var i="|",n=this.tabData[e][2];e===this.tabData.length-1&&(i=""),t+='<span data-type="'+this.tabData[e][1]+'" data-index="'+e+'">'+(n?'<img class=tab-icon src="'+n+'" />':"")+this.tabData[e][0]+"</span>"+i,this.state.pagesList.push(0),this.state.adsenseidList.push(this.adsenseid),this.state.scrollPosition.push(0)}this.showRefreshBtn&&(t+='<p class="refresh-btn">换一换</p>');var s=document.createElement("div");s.className="n256-news-tab"+(this.isShowTab?"":" hide"),s.innerHTML=t,this.target.appendChild(s)},createNewsContainer:function(){var t=document.createElement("div");t.className="n256-tab-item-container",this.target.appendChild(t);for(var e=0;e<this.tabData.length;e++){var i=document.createElement("div");i.className="n256-tab-item",t.appendChild(i)}},refresh:function(){location.href="#"+this.containerId,this.getNews(!0),this.showBottomNotice(!1)},fillNews:function(t,e){for(var i,s=this,n=0,a="",o=$l(this.target).find(".n256-tab-item")[this.state.activeIndex],r=0;r<t.length;r++){var d="";if((r===this.firstAdPosition-2||(r-this.firstAdPosition-1)%this.newsRadio==0&&r+1>this.firstAdPosition)&&this.showAd){var c=Math.random(),l=0;for(var h in this.adConfig)if(this.adConfig.hasOwnProperty(h)){if(c<l+this.adConfig[h]&&l<=c){i=h;break}l+=this.adConfig[h]}switch(i){case"baidu":d=this.baiduAdContainer(this.state.adsenseidList[this.state.activeIndex]);break;case"360":d=this._360AdContainer(this.state.adsenseidList[this.state.activeIndex]),n++}this.state.adsenseidList[this.state.activeIndex]++}1===this.newsMode?i="single":2===this.newsMode?i=3<=t[r].miniimg.length?"multi":"single":3===this.newsMode&&(i=3<=t[r].miniimg.length?.5<=Math.random()?"single":"multi":"single"),a+="multi"==i?this.multiImgNewsTemplate(t[r]):this.singleImgNewsTemplate(t[r]),a+=d}e&&(o.innerHTML="");var u=document.createElement("div");$l(u).attr("data-page",this.state.pagesList[this.state.activeIndex]),$l(u).addClass("page-container"),u.innerHTML=a,o.appendChild(u);var m=$l(u).find(".ad-baidu");for(r=0;r<m.length;r++){var f=$l(m[r]).attr("data-num");m[r].innerHTML=this.baiduAdTemplate([f])}s.adConfig[360]||setTimeout(function(){s.checkShow(null,!0)},600);var g=this;if(n){var p=$l(u).find(".ad-360"),w=[];for(r=0;r<p.length;r++)w.push($l(p[r]).attr("data-num"));this.get360Ad(n,w,function(t){t||(t=[]);for(var e=Math.min(p.length,t.length),i=0;i<e;i++)p[i].innerHTML=g._360AdTemplate(t[i]);if(g.replace360Ad){for(i=t.length;i<p.length;i++){var n=$l(p[i]).attr("data-num");$l(p[i]).removeClass("ad-360").addClass("ad-baidu"),p[i].innerHTML=g.baiduAdTemplate([n])}setTimeout(function(){s.checkShow(null,!0)},600),setTimeout(function(){s.update&&s.update()},0)}})}},showNonewsNotice:function(t){var e=$l(this.target).find(".n256-news-loadnotice"),i=$l(this.target).find(".n256-load-more-btn"),n=$l(this.target).find(".n256-load-more-btn");t?(e.addClass("hide"),i.addClass("hide"),n.removeClass("hide")):(e.removeClass("hide"),i.addClass("hide"),n.addClass("hide"))},showBottomNotice:function(t){var e=$l(this.target).find(".n256-news-loadnotice"),i=t?"已经到底啦，点击重新加载":"加载中...";e[0]&&(e[0].innerHTML=i)},_360Statistics:function(t){function e(t){var e=new Image;e.onload=e.onerror=e.onabort=function(){e.onload=e.onerror=e.onabort=null},e.src=t}for(var i=0;i<t.length;i++)e(t[i])},newsStatistics:function(t,e,i){$l.ajax({method:"jsonp",url:"//guess.union2.50bang.org/trrs",params:{adsenseid:this.newsAdsenseid,user:{uid:""},site:{url:location.href,referer:document.referrer},app:{},device:{userAgent:navigator.userAgent,idfa:"",imei:"",deviceType:0,brand:"",model:"",os:"",osv:"",network:""},data:{type:7,action:"news",acode:t,atime:parseInt((new Date).getTime()/1e3),url:location.href,rurl:document.referrer,tab:this.tabData[this.state.activeIndex][1],nid:"",nurl:e||"",nindex:i||"",hindex:"",channelid:1003}}})},adStatistics:function(t,e,i,n,s){$l.ajax({method:"jsonp",url:"//guess.union2.50bang.org/trrs",params:{adsenseid:this.newsAdsenseid,user:{uid:""},site:{url:location.href,referer:document.referrer},app:{},device:{userAgent:navigator.userAgent,idfa:"",imei:"",deviceType:0,brand:"",model:"",os:"",osv:"",network:""},data:{type:7,action:"ad",acode:t,atime:parseInt((new Date).getTime()/1e3),url:location.href||"",rurl:document.referrer||"",tab:this.tabData[this.state.activeIndex][1],adsenseid:n||"",aurl:e||"",aindex:i||"",channelid:s||""}}})},getAdPosition:function(t){var e=t.offsetX,i=t.offsetY,n=t.target||t.srcElement;return{x:e+n.offsetTop,y:i+n.offsetLeft}},bindEvent:function(){var c=this;function t(){var t,e,i;c.containerHeight?(t=c.newsContainer.scrollHeight,e=c.newsContainer.scrollTop,i=c.newsContainer.clientHeight):(t=document.documentElement.scrollHeight||document.body.scrollHeight,e=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop,i=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight);var n=t-Math.ceil(e+i);if(c.state.scrollPosition[c.state.activeIndex]=e,"fixed"===c.actionAtBottom){var s=$l(c.target).find(".n256-tab-item")[c.state.activeIndex],a=s.offsetHeight,o=$l(c.newsContainer).offset().top,r=window.pageYOffset||(document.documentElement||document.body).scrollTop,d=window.innerHeight||(document.documentElement||document.body).clientHeight;n<=c.topInstance?$l(s)[0].style.paddingBottom=c.topInstance-n+"px":$l(s)[0].style.paddingBottom="0px",a+o-r<=d?$l(s).addClass("fixed-position"):$l(s).removeClass("fixed-position")}else if("load"===c.actionAtBottom){if(c.state.pagesList[c.state.activeIndex]>=c.maxPage)return c.showBottomNotice(!0);if(c.state.pagesList[c.state.activeIndex]>=c.loadPage)return c.showBottomNotice(!0),$l(c.target).find(".n256-news-loadnotice").addClass("hide"),void $l(c.target).find(".n256-load-more-btn").removeClass("hide");n<=c.instance&&(window["isNewsLoading"+c.hash]||c.getNews())}}$l(c.target).find(".n256-load-more-btn").on("click",function(){c.getNews()}),$l(c.target).find(".n256-news-loadnotice").on("click",function(){c.refresh()}),$l(c.target).find(".refresh-btn").on("click",function(){c.refresh()}),$l(c.target).find(".n256-news-tab").on(1===c.changeTabWay?"mouseover":"click","span",function(){c.showBottomNotice(!1),c.state.pagesList[c.state.activeIndex]>=c.loadPage?($l(c.target).find(".n256-news-loadnotice").addClass("hide"),$l(c.target).find(".n256-load-more-btn").removeClass("hide")):($l(c.target).find(".n256-news-loadnotice").removeClass("hide"),$l(c.target).find(".n256-load-more-btn").addClass("hide"));var t=$l(this).attr("isvisited"),e=$l(c.target).find(".n256-news-tab").child("span"),i=$l(this).attr("data-index");$l(this).attr("data-type");$l(e[c.state.activeIndex]).removeClass("active-tab"),$l(e[i]).addClass("active-tab");var e=$l(c.target).find(".n256-tab-item");$l(e[c.state.activeIndex]).removeClass("active-tab-item"),$l(e[i]).addClass("active-tab-item"),c.state.activeIndex=i;var n=c.state.scrollPosition[c.state.activeIndex];c.containerHeight?"top"===c.scrollPosition?c.newsContainer.scrollTop=0:"lastPosition"===c.scrollPosition&&(c.newsContainer.scrollTop=n):"top"===c.scrollPosition?window.scrollTo(0,0):"lastPosition"===c.scrollPosition&&window.scrollTo(0,n);{if(t)return;window["isNewsLoading"+c.hash]||(c.getNews(!0),$l(this).attr("isvisited","true"))}});var e=c.containerHeight?c.newsContainer:window;window.addEventListener?e.addEventListener("scroll",t):e.attachEvent("onscroll",t)},bindStatisticsEvent:function(){var c,w=this;$l(w.target).on("mousedown",".ad-360",function(t){c=(new Date).getTime()}),$l(w.target).on("mouseup",".ad-360",function(t){if(2!==t.button){var e=$l($l(this).child()[0]),i=e.attr("data-clktk"),n=(new Date).getTime();i=(i=(i=(i=(i=i.replace("__EVENT_TIME_START__",c)).replace("__EVENT_TIME_END__",n)).replace("__OFFSET_X__",w.getAdPosition(t).x)).replace("__OFFSET_Y__",w.getAdPosition(t).y)).split(",");var s=e.attr("data-url");s=(s=(s=(s=s.replace("__EVENT_TIME_START__",c)).replace("__EVENT_TIME_END__",n)).replace("__OFFSET_X__",w.getAdPosition(t).x)).replace("__OFFSET_Y__",w.getAdPosition(t).y),e.attr("href",s),w._360Statistics(i);var a,o=s,r=$l(this.parentNode).attr("data-page");a=2<=r?$l(this).index()+(r-2)*(w.newsNumPer+w.adNumPer)+(w.adNumFirst+w.newsNumFirst):$l(this).index();var d=$l(this).attr("data-num");w.adStatistics(4,o,a+1,[d],"1001")}}),$l(w.target).on("click",".news-item",function(t){if(2!==t.button){var e=$l(this).attr("data-url"),i=0,n=$l(this.parentNode).attr("data-page");i=2<=n?$l(this).index()+(n-2)*(w.newsNumPer+w.adNumPer)+(w.adNumFirst+w.newsNumFirst):$l(this).index(),w.newsStatistics(4,[e],[i+1]);$l(this).attr("data-url")}});var v,b,I,t=w.containerHeight?w.newsContainer:window,e=(I=b=v=0,function(t,e){if(!e)if(b++,"times"===w.scrollOptimizeMethod){if(!(b>=w.scrollTimes))return;b=0}else{if(!((I=(new Date).getTime())-v>w.scrollInterval))return;v=I}for(var i=$l(w.target).find(".n256-tab-item").eq(w.state.activeIndex),n=i.find(".news-item"),s=i.find(".ad-360"),a=i.find(".ad-baidu"),o=0;o<n.length;o++)if(!(c=$l(n[o]).attr("isvisited"))&&$l(n[o]).isInView(w.containerHeight,w.showSpace)){var r=0,d=$l(n[o]).attr("data-url");r=2<=(p=$l(n[o].parentNode).attr("data-page"))?$l(n[o]).index()+(p-2)*(w.newsNumPer+w.adNumPer)+(w.adNumFirst+w.newsNumFirst):$l(n[o]).index(),w.newsBuffer.nurl.push(d),w.newsBuffer.nindex.push(r+1),$l(n[o]).attr("isvisited","true")}for(o=0;o<s.length;o++){var c=(g=$l(s[o])).attr("isvisited");if(g.isInView(w.containerHeight,w.showSpace)&&!c&&g.child().length){var l=g.attr("data-url"),h=g.attr("data-num"),u=0,m=1001;if(u=2<=(p=$l(g[0].parentNode).attr("data-page"))?g.index()+(p-2)*(w.newsNumPer+w.adNumPer)+(w.adNumFirst+w.newsNumFirst):g.index(),w.adStatistics(3,l,u+1,[h],m),g.child()[0]){var f=$l(g.child()[0]).attr("data-imptk").split(",");w._360Statistics(f)}g.attr("isvisited","true")}}for(o=0;o<a.length;o++){var g,p;if(c=(g=$l(a[o])).attr("isvisited"),g.isInView(w.containerHeight,w.showSpace)&&!c&&10<=g[0].offsetHeight)l=g.attr("data-url"),h=g.attr("data-num"),u=0,m=1002,u=2<=(p=$l(a[o].parentNode).attr("data-page"))?g.index()+(p-2)*(w.newsNumPer+w.adNumPer)+(w.adNumFirst+w.newsNumFirst):g.index(),w.adStatistics(3,l,u+1,[h],m),g.attr("isvisited","true")}});this.checkShow=e,window.addEventListener?t.addEventListener("scroll",e):t.attachEvent("onscroll",e),setInterval(function(){w.newsBuffer.nurl&&w.newsBuffer.nurl.length&&w.newsStatistics(3,w.newsBuffer.nurl,w.newsBuffer.nindex),w.newsBuffer.nurl.length=0,w.newsBuffer.nindex.length=0},w.statisticsInterval)}};
+if (typeof console === 'undefined') {
+  window.console = {
+    log: function () {},
+    error: function () {}
+  }
+}
+// dom operate methods
+var $l = function (str, gather) {
+  return new DomOperate(str, gather)
+}
+function DomOperate (str, gather) {
+  var doms = this.init(str, gather)
+  for (var i = 0; i < doms.length; i++) {
+    this[i] = doms[i]
+  }
+  this.length = doms.length
+}
+DomOperate.prototype = {
+  constructor: DomOperate,
+  init: function (str, gather) {
+    var strType = this.strType(str)
+    if (strType === 'id') {
+      var dom = document.getElementById(str.slice(1))
+      return dom ? [dom] : []
+    } else if (strType === 'tag') {
+      return (gather || document).getElementsByTagName(str)
+    } else if (strType === 'class') {
+      var tags = (gather || document).getElementsByTagName('*')
+      var classDom = []
+      var classExp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)', 'i')
+      for (var i = 0; i < tags.length; i++) {
+        if (classExp.test(tags[i].className)) {
+          classDom.push(tags[i])
+        }
+      }
+      return classDom
+    } else if (strType === 'dom') {
+      return [str]
+    } else if (strType === 'domArray') {
+      return str
+    } else {
+      return []
+    }
+  },
+  strType: function (str) {
+    var idExp = /^#.+/
+    var classExp = /^\..+/
+    var tagExp = /^[^.#]/
+    if (typeof str === 'object') {
+      if (str instanceof Array) {
+        return 'domArray'
+      } else if (str.ownerDocument === document) {
+        return 'dom'
+      }
+    } else if (typeof str === 'string') {
+      if (idExp.test(str)) {
+        return 'id'
+      } else if (classExp.test(str)){
+        return 'class'
+      } else if (tagExp.test(str)) {
+        return 'tagName'
+      }
+    } else {
+      return null
+    }
+  },
+  addClass: function (newClass) {
+    for (var i = 0; i < this.length; i++) {
+      if($l(this[i]).hasClass(newClass)) return
+      this[i].className += ' ' + newClass
+    }
+    return this
+  },
+  removeClass: function (oldClass) {
+    var reg = new RegExp('\\s*' + oldClass)
+    for (var i = 0; i < this.length; i++) {
+      this[i].className = this[i].className.replace(reg, '')
+    }
+    return this
+  },
+  hasClass: function (str) {
+    var reg = new RegExp('(\\s+|^)+' + str + '(\\s+|$)')
+    return this[0].className.search(reg) != -1 ? true : false
+  },
+  hasAttr: function (str) {
+    return this[0].getAttribute(str) !== null
+  },
+  attr: function () {
+    if (!this[0]) return
+    if (arguments.length == 1) {
+      return this[0].getAttribute(arguments[0])
+    } else {
+      this[0].setAttribute(arguments[0], arguments[1])
+      return this
+    }
+  },
+  child: function (str) {
+    var childList = this[0].childNodes || []
+    var children = []
+    for (var i = 0; i < childList.length; i++) {
+      if (!str) {
+        if (childList[i].tagName) {
+          children.push(childList[i])
+        }
+      } else {
+        if (childList[i].id == str.slice(1) || childList[i].className == str.slice(1) || childList[i].nodeName.toLowerCase() == str) {
+          children.push(childList[i])
+        }
+      }
+    }
+    return $l(children)
+  },
+  eq: function (index) {
+    return $l(this[index])
+  },
+  trigger: function (eventType) {
+    var evt
+    try {
+      evt = new Event(eventType, {
+        bubbles: true
+      })
+    } catch (err) {
+      if (document.createEvent) {
+        evt = document.createEvent('Event')
+        evt.initEvent(eventType, true, false)
+      }
+    }
+    for(var i = 0; i < this.length; i++) {
+      if (this[i].dispatchEvent) {
+        this[i].dispatchEvent(evt)
+      } else {
+        this[i].fireEvent('on' + eventType)
+      }
+    }
+  },
+  index: function (index) {
+    var children = $l(this[0].parentNode).child()
+    if (parseInt(index)) {
+      return $l(children[index])
+    }
+    for (var i = 0; i < children.length; i++) {
+      if (this[0] === children[i]) {
+        return i
+      }
+    }
+  },
+  on: function (eventType, sStr, callback) {
+    var _this = this
+    if (arguments.length == 2) {
+      callback = arguments[1]
+      sStr = ''
+    }
+    function findThis (target, str) {
+      var result
+      if (target === document.body) {
+        return null
+      }
+      if (!str) {
+        result = target
+      }
+      var type = _this.strType(str)
+      if (type === 'class') {
+        var exp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+        if (exp.test(target.className)) {
+          result = target
+        }
+      } else if (type === 'id') {
+        var exp = new RegExp('(\\s+|^)' + str.slice(1) + '(\\s+|$)')
+        if (exp.test(target.id)) {
+          result = target
+        }
+      } else if (type === 'tagName') {
+        var exp = new RegExp('(\\s+|^)' + str + '(\\s+|$)', 'i')
+        if (exp.test(target.tagName)) {
+          result = target
+        }
+      }
+      return result === undefined ? findThis(target.parentNode, str) : result
+    }
+    var eventHandler = function (evt) {
+      var evt = evt || event
+      var target = evt.target || evt.srcElement
+      var _this = findThis(target, sStr)
+      _this && callback.call(_this, evt)
+    }
+    for (var i = 0; i < _this.length; i++) {
+      if (window.addEventListener) {
+        _this[i].addEventListener(eventType, eventHandler)
+      } else if (window.attachEvent) {
+        _this[i].attachEvent('on' + eventType, eventHandler)
+      }
+    }
+    return _this
+  },
+  offset: function () {
+    function getOffset (dom) {
+      if (!dom) {
+        return {
+          top:0,
+          left:0
+        }
+      } else {
+        return {
+          top: dom.offsetTop + getOffset(dom.offsetParent).top,
+          left: dom.offsetLeft + getOffset(dom.offsetParent).left
+        }
+      }
+    }
+    return getOffset(this[0])
+  },
+  isInView: function (hasHeight, showSpace) {
+    var scrollT1, scrollT2
+    var clientHeight1, clientHeight2
+    var offsetT1, offsetT2
+    var isInView = false
+    scrollT2 = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+    clientHeight2 = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+    offsetT2 = this.offset().top
+
+    if (hasHeight) {
+      scrollT1 = this[0].offsetParent.scrollTop
+      clientHeight1 = this[0].offsetParent.clientHeight
+      offsetT1 = this[0].offsetTop
+
+      if (scrollT1 + clientHeight1 >= offsetT1 + showSpace && scrollT2 + clientHeight2 >= offsetT2 -  scrollT1 + showSpace) {
+        isInView = true
+      }
+    } else {
+      if (scrollT2 + clientHeight2 >= offsetT2 + showSpace) {
+        isInView = true
+      }
+    }
+    return isInView
+  },
+  find: function (str) {
+    return new DomOperate(str, this[0])
+  }
+}
+// class methods
+var $lMethods = {
+  ajax: function (obj) {
+    var xml, paramsStr = ''
+    function formatParams (params, pre) {
+      var str = '', pre = pre || ''
+      var a = pre ? true : false
+      for (var i in params) {
+        if (params.hasOwnProperty(i)) {
+          if (typeof params[i] === 'object') {
+            str += formatParams(params[i], pre + (a ? '[' : '') + i + (a ? ']' : ''))
+          } else {
+            str += pre + (a ? '[' : '') + i + (a ? ']' : '') + '=' + encodeURIComponent(params[i]) + '&'
+          }
+        }
+      }
+      return str
+    }
+    paramsStr = formatParams(obj.params).slice(0, -1)
+    if (obj.method === 'jsonp') {
+      var script = document.createElement('script')
+      script.onerror = script.onabort = function () {
+        if (!script.loaded) {
+          this.loaded = true
+          obj.error && obj.error()
+        }
+      }
+      var jsonp = obj.jsonp || 'callback'
+      var jsonpCallback = obj.jsonpCallback || 'n' + Math.random().toString(26).slice(2)
+      window[jsonpCallback] = function (res) {
+        script.loaded = true
+        obj.success(res)
+      }
+      var jsonpStr = (paramsStr ? "&" : '') + jsonp + '=' + jsonpCallback
+      script.src = obj.url + '?' + paramsStr + jsonpStr
+      document.getElementsByTagName('head')[0].appendChild(script)
+      // jsonp超时处理
+      setTimeout(function () {
+        if (!script.loaded) {
+          window[jsonpCallback] = null
+          script.loaded = true
+          obj.error && obj.error()
+        }
+      }, obj.timeout || 3000)
+    } else {
+      if (window.XMLHttpRequest) {
+        xml = new XMLHttpRequest()
+      } else {
+        xml = new ActiveXObject('Microsoft.XMLHTTP')
+      }
+      if (obj.method === 'get') {
+        xml.open("get", obj.url + '?' + paramsStr, true)
+      } else if(obj.method === 'post') {
+        xml.open("post", obj.url, true)
+      }
+      xml.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+      xml.onreadystatechange = function () {
+        if (xml.readyState == 4) {
+          if (xml.status == 200 || xml.status == 304) {
+            obj.success && obj.success(xml.responseText)
+          } else {
+            obj.error && obj.error()
+          }
+        }
+      xml.send(obj.method === 'post' ? paramsStr : null)
+      }
+    }
+  },
+  iev: function () {
+    var info = navigator.userAgent
+    var reg = /msie \d+/i
+    var result = reg.exec(info)
+    return !result ? undefined : parseInt(result[0].split(' ')[1])
+  },
+  cookie: function () {
+    var key = arguments[0]
+    var value = arguments[1]
+    var day = arguments[2]
+    if (arguments.length > 1) {
+      var time = new Date()
+      var year = time.getFullYear()
+      var date = time.getDate()
+      if (day === 'forever') {
+        time.setFullYear(year + 100)
+      } else {
+        time.setDate(date + day)
+      }
+      document.cookie = key + '=' + value + (day ? ';expires=' + time.toGMTString() : '')
+    } else {
+      var reg = new RegExp(key + '=' + '[^;=]*')
+      return document.cookie.match(reg) && document.cookie.match(reg)[0].split('=')[1]
+    }
+  },
+  open: function (url) {
+    var id = 'n256' + Math.random().toString(26).slice(2)
+    var a = document.createElement('a')
+    a.href = url
+    a.id = id
+    a.target = '_blank'
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    setTimeout(function () {
+      document.getElementById(id).click()
+    }, 0)
+  },
+  parseTime: function (time) {
+    function format(num) {
+      return num >= 10 ? num : '0' + num
+    }
+    var time = new Date(time)
+    var year = time.getFullYear()
+    var month = time.getMonth() + 1
+    var date = time.getDate()
+    var hours = time.getHours()
+    var minus = time.getMinutes()
+    var seconds = time.getSeconds()
+    return format(month) + '月' + format(date) + '日 ' + format(hours) + ':' + format(minus)
+  }
+}
+for (var i in $lMethods) {
+  if ($lMethods.hasOwnProperty(i)) {
+    $l[i] = $lMethods[i]
+  }
+}
+// NewsModule class
+function NewsModule (params) {
+  // default params handle
+  this.containerId = params.containerId
+  this.adsenseid = params.adsenseid
+  this.newsAdsenseid = params.newsAdsenseid
+  this.statisticsInterval = params.statisticsInterval || 1000
+  this.tabData = params.tabData || [['头条', 'toutiao']]
+  this.newsNumPer = params.newsNumPer || 18
+  this.newsNumFirst = params.newsNumFirst || 18
+  this.newsRadio = params.newsRadio || 3
+  this.showAd = params.showAd === false ? false : true
+  this.newsOrigin = params.newsOrigin || 'dongfang'
+  this.instance = params.instance || 0
+  this.adConfig = params.adConfig || {"baidu": 0.3, "360": 0.7}
+  this.replace360Ad = params.replace360Ad === false ? false : true
+  this.loadPage = params.loadPage || 5
+  this.reloadInterval = params.reloadInterval || 3000
+  this.reloadTimes = params.reloadTimes || 3
+  this.maxPage = params.maxPage || 10
+  this.isShowTab = params.isShowTab === false ? false : true
+  this.baiduAdUrl = params.baiduAdUrl || './ads/baiduAd.html'
+  this.topInstance = params.topInstance || 0
+  // second add
+  this.showSpace = params.showSpace || 0
+  this.changeTabWay = params.changeTabWay || 1
+  this.actionAtBottom = params.actionAtBottom || 'load'
+  this.containerHeight = params.containerHeight || 0
+  this.newsMode = params.newsMode || 3
+  this.adMode = params.adMode || 2
+  this.forceStretchNewsImg = params.forceStretchNewsImg === true ? true : false
+  this.forceStretchAdImg = params.forceStretchAdImg === true ? true : false
+  this._360ccp = params._360ccp || 'top'
+  this.isShow360cc = params.isShow360cc && true
+  this.baiduAdId = params.baiduAdId || 'u3433620'
+  this.dongfangNewsId = params.dongfangNewsId || '02151'
+  this._360ccId = params._360ccId || "OBHnX7"
+  this._360adId = params._360adId || 'mCzFYt'
+  this.scrollInterval = params.scrollInterval || 500
+  this.scrollTimes = params.scrollTimes || 6
+  this.scrollOptimizeMethod = params.scrollOptimizeMethod || 'times'
+  this.hideInfo = params.hideInfo && true
+  this.scrollPosition = params.scrollPosition || 'lastPosition'
+  // third add
+  this.isShowFourImg = params.isShowFourImg && true
+  this.isShowBottomNotice = params.isShowBottomNotice === false ? false : true
+  this.firstAdPosition = params.firstAdPosition || 2
+  this.update = params.update
+  // fourth add
+  this.baiduAdIds = params.baiduAdIds || {1: {id: this.baiduAdId, precent: 1}}
+  this.baiduccId = params.baiduccId || ''
+  this.isShowBaiducc = params.isShowBaiducc && true
+  this.baiduccPosition = params.baiduccPosition || 'top'
+  // fiveth add
+  this.loadDelay = params.loadDelay || 200
+  this.loadInstance = params.loadInstance || 300
+  //sixth add
+  this.adInsertWay = params.adInsertWay || 'ratio'
+  this.showRefreshBtn = params.showRefreshBtn && true
+  // computed params
+  this.newsBuffer = {nurl: [], nindex: []}
+  this.target = $l('#' + this.containerId)[0]
+  this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRadio + 1)
+  this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRadio + 1)
+  this.hash = Math.random().toFixed(6).slice(2)
+  this.state = {
+    activeIndex: 0,
+    pagesList: [],
+    adsenseidList:[],
+    scrollPosition: []
+  }
+  // 参数校验
+  if (!params.adsenseid) {
+    console.error('adsenseid is required')
+  }
+  if (!params.newsAdsenseid) {
+    console.error('newsAdsenseid is required')
+  }
+  if (!this.containerId) {
+    console.error('containerId is required')
+  }
+  if (!params.dongfangNewsId) {
+    console.error('dongfangNewsId is required')
+  }
+  if (this.isShow360cc && !params._360ccId) {
+    console.error('_360ccId is required')
+  }
+  if (this.isShowBaiducc && !params.baiduccId) {
+    console.error('baiduccId is required')
+  }
+  if (this.adConfig['360'] && !params._360adId) {
+    console.error('_360adId is required')
+  }
+  if (this.adConfig.baidu && !(params.baiduAdId || params.baiduAdIds['1'] || params.baiduAdIds['3'] || params.baiduAdIds['4'])) {
+    console.error('baiduAdIds is required')
+  }
+  // 兼容性优化
+  // ie8及以下三图广告换成单图广告
+  if ($l.iev() <= 8) {
+    delete this.baiduAdIds['3']
+    delete this.baiduAdIds['4']
+    this.baiduAdIds['1'].precent = 1
+  }
+  // 初始化dom结构
+  if (this.containerHeight) {
+    $l(this.target).addClass('n256-tab-title-fixed')
+  }
+  // 顶部360橱窗
+  if (this.isShow360cc && this._360ccp === 'top') {
+    this.create360cc()
+  }
+  // 顶部百度橱窗
+  if (this.isShowBaiducc && this.baiduccPosition === 'top') {
+    this.createBaiducc()
+  }
+  // 创建tab栏
+  this.createTab()
+  // 创建信息流容器
+  this.createNewsContainer()
+  // dom缓存
+  this.newsContainer = $l(this.target).find('.n256-tab-item-container')[0]
+  // 底部360橱窗
+  if (this.isShow360cc && this._360ccp === 'bottom') {
+    this.create360cc()
+  }
+  // 底部百度橱窗
+  if (this.isShowBaiducc && this.baiduccPosition === 'bottom') {
+    this.createBaiducc()
+  }
+  if (this.actionAtBottom === 'load' && this.isShowBottomNotice === true) {
+    this.createLoadNotice()
+    this.createNoNewsNotice()
+  }
+  // 事件绑定
+  this.bindEvent()
+  this.bindStatisticsEvent()
+  // 初始化接口数据
+  if (this.containerHeight) {
+    this.newsContainer.style.height = this.containerHeight + 'px'
+    this.newsContainer.style.overflow = 'scroll'
+    this.newsContainer.style.overflowX= 'hidden'
+  }
+  var eventType
+  if (this.changeTabWay === 1) {
+    eventType = 'mouseover'
+  } else if (this.changeTabWay === 2) {
+    eventType = 'click'
+  }
+  params.init && params.init(this.newsContainer)
+  // 信息流到达屏幕底部一定距离再第一次请求数据
+  var _this = this
+  var firstPageLoaded = false
+  function firstLoadHandler () {
+    if (firstPageLoaded) return
+    var container = $l('#' + _this.containerId)
+    var clienty = container.offset().top - (window.pageYOffset || document.documentElement.scrollTop)
+    var loadp = (window.innerHeight || document.documentElement.clientHeight) + _this.loadInstance
+    if( clienty <= loadp) {
+      $l(_this.target).find('.n256-news-tab').child().eq(0).trigger(eventType);
+      firstPageLoaded = true
+      if (window.addEventListener) {
+        window.removeEventListener('scroll', firstLoadHandler)
+      } else {
+        window.detachEvent('onscroll', firstLoadHandler)
+      }
+    }
+  }
+  if (window.addEventListener) {
+    window.addEventListener('scroll', firstLoadHandler)
+  } else {
+    window.attachEvent('onscroll', firstLoadHandler)
+  }
+  setTimeout(function() {
+    firstLoadHandler()
+  }, this.loadDelay)
+}
+// 信息流对象原型
+NewsModule.prototype = {
+  constructor: NewsModule,
+  createLoadNotice: function () {
+    var div = document.createElement('div')
+    var p = document.createElement('p')
+    div.className = 'n256-news-loadnotice'
+    // div.id = 'n256-news-loadnotice'
+    div.innerHTML = '加载中...'
+    p.className = 'n256-load-more-btn hide btn'
+    // p.id = 'n256-load-more-btn'
+    p.innerHTML = '点击加载更多'
+    this.newsContainer.appendChild(div)
+    this.newsContainer.appendChild(p)
+  },
+  create360cc: function () {
+    var div = document.createElement('div')
+    var id = 'n256' + Math.random().toString(26).slice(0, 10)
+    var ccid = this._360ccId
+    var script = document.createElement('script')
+    script.src = '//static.mediav.com/js/mvf_pm_slider.js'
+    script.setAttribute('charset', 'utf-8')
+    div.id = id
+    this.target.appendChild(div)
+    script.onload = function () {
+      var obj = {"w":280,"showid": ccid,"rshowid": ccid,"inject":"inlay","layout":"magicCubeScene","style":"magicCube","row":"2","line":"2"}
+      obj.placeholderId = id
+      typeof BANNER_SLIDER != 'undefined' && BANNER_SLIDER(obj);
+    }
+    document.body.appendChild(script)
+  },
+  createBaiducc: function () {
+    var div = document.createElement('div');
+    var iframeId ='n256' + Math.random().toString(16).slice(2)
+    var adId = this.baiduccId;
+    div.className = 'baiducc'
+    div.innerHTML = '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + adId + '#' + iframeId + '"/>'
+    this.target.appendChild(div)
+  },
+  createNoNewsNotice: function () {
+    var div = document.createElement('div')
+    div.className = 'n256-nonews-notice hide'
+    // div.id = 'n256-nonews-notice'
+    div.innerHTML = '<a href="javascript:;"  class="btn">暂无内容，点击重新加载</a>'
+    this.newsContainer.appendChild(div)
+  },
+  singleImgNewsTemplate: function (item, i) {
+    var news = '<a class="n256-news-item-singleImg news-item"  target="_blank" href=' + item.url + ' data-url=' + item.url + '>' +
+      '<div class="n256-news-img">' +
+        '<img src="' + item.miniimg[0].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '">' +
+      '</div>' +
+      '<div class="n256-news-content">' +
+        '<div class="content">' +
+        '<span class="title">' + item.topic + '</span>' +
+        (this.hideInfo ? '' :
+        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
+        '</div>' +
+      '</div>' +
+    '</a>'
+    return news
+  },
+  multiImgNewsTemplate: function (item) {
+    var news = '<a class="n256-news-item-multiImg news-item"  target=_blank href=' + item.url + ' data-url=' + item.url + '>' +
+      '<span class="title">' + item.topic + '</span>' +
+      '<ul>' +
+        '<li><img src="' + item.miniimg[0].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
+        '<li><img src="' + item.miniimg[1].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
+        '<li><img src="' + item.miniimg[2].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '"></li>' +
+        (this.isShowFourImg ? '<li>' + (item.miniimg[3] ? '<img src="' + item.miniimg[3].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '">' : '<span class="check-info">查看详情>></span>') + '</li>' : '') +
+      '</ul>' +
+      (this.hideInfo ? '' :
+      '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
+      '</a>'
+    return news
+  },
+  baiduAdContainer: function (num) {
+    var ad = '<div class="ad-baidu" data-num="' + num + '" style="position:relative;"></div>'
+    return ad
+  },
+  _360AdContainer: function (num) {
+    var ad = '<div class="ad-360" data-num="' + num + '" style="position:relative;"></div>'
+    return ad
+  },
+  _360AdTemplate: function (adItem, num) {
+    if (!adItem) {
+      return ''
+    }
+    var ad
+    var adType = adItem.type
+    var clktk = adItem.clktk.join()
+    var imptk = adItem.imptk.join()
+
+    if (adType == 1 || adType == 4 || this.adMode == 1) {
+      ad = '<a class="n256-news-item-singleImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<div class="n256-news-img">' +
+          '<img src="' + (adItem.img || adItem.assets[0].img) + '" alt="" style="height:' + (this.forceStretchAdImg ? '100%' : 'auto') + '">' +
+        '</div>' +
+        '<div class="n256-news-content">' +
+          '<div class="content">' +
+          '<span class="title">' + adItem.title + '</span>' +
+          '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+          '</div>' +
+        '</div>' +
+      '</a>'
+    } else if (adType == 2) {
+      ad = '<a class="n256-news-item-multiImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<span class="title">' + (adItem.topic || adItem.title || adItem.desc) + '</span>' +
+        '<ul>' +
+          '<li><img src="' + adItem.assets[0].img + '" alt=""></li>' +
+          '<li><img src="' + adItem.assets[1].img + '" alt=""></li>' +
+          '<li><img src="' + adItem.assets[2].img + '" alt=""></li>' +
+        '</ul>' +
+        '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+        '</a>'
+    } else if (adType == 3) {
+      ad = '<a class="n256-news-item-bigImg"  target=_blank href=' + adItem.curl + ' data-url=' + adItem.curl + ' data-clktk=' + clktk + ' data-imptk=' + imptk + '>' +
+        '<span class="title">' + (adItem.topic || adItem.title || adItem.desc) + '</span>' +
+        '<div class="big-img">' +
+          '<img src="' + adItem.img + '" alt=""/>' +
+        '</div>' +
+        '<p class="n256-news-info"><span class="type">广告</span><span>' + adItem.src + '</span></p>' +
+        '</a>'
+    }
+    return ad
+  },
+  baiduAdTemplate: (function () {
+    var order = 0, ids = [];
+    return function (num) {
+      if (!ids.length) {
+        for (var i in this.baiduAdIds) {
+          if (this.baiduAdIds.hasOwnProperty(i)) {
+            ids.push(this.baiduAdIds[i].id)
+          }
+        }
+        if (ids.length === 0) {
+          ids.push(this.baiduAdId)
+        }
+      }
+      var iframeId ='n256' + Math.random().toString(16).slice(2)
+      var result = Math.random();
+      var min = 0;
+      var adId = '';
+      if (this.adInsertWay === 'ratio') {
+        for(var i in this.baiduAdIds) {
+          if (this.baiduAdIds.hasOwnProperty(i)) {
+            if (result >= min && result < this.baiduAdIds[i].precent + min) {
+              adId = this.baiduAdIds[i].id;
+              break;
+            }
+            min += this.baiduAdIds[i].precent
+          }
+        }
+        adId = adId || this.baiduAdId
+      } else if (this.adInsertWay === 'order') {
+        adId = ids[order]
+        order++
+        order = order > ids.length - 1 ? 0 : order
+      }
+      this.adStatistics(1, null, null, num, 1002)
+      return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + adId + '#' + iframeId + '"/>'
+    }
+  })(),
+  get360Ad: (function () {
+    var uid = Math.random().toString(26).slice(2)
+    var reqtimes = 1
+    return function (impct, num, callback) {
+      var _this = this
+      window['isNewsLoading' + this.hash] = true
+      this.adStatistics(1, null, null, num, 1001)
+      $l.ajax({
+        method: 'jsonp',
+        params: {
+          of: 4,
+          newf: 1,
+          type: 1,
+          showid: _this._360adId,
+          uid: uid,
+          reqtimes: reqtimes,
+          impct: impct
+        },
+        jsonp: 'jsonp',
+        jsonpCallback: 'n360ad',
+        url: '//show.g.mediav.com/s',
+        success: function (res) {
+          _this.adStatistics(2, null, null, num, 1001)
+          window['isNewsLoading' + _this.hash] = false
+          callback && callback(res.ads)
+          reqtimes++
+        },
+        error: function () {
+          window['isNewsLoading' + _this.hash] = false
+          callback && callback([])
+        }
+      })
+    }
+  })(),
+  getDongfangNews: (function () {
+    function getUid () {
+      var uid = $l.cookie('n256NewsUid');
+      if (!uid) {
+        uid = Math.random().toString(26).slice(2) + Math.random().toString(26).slice(2)
+        $l.cookie('n256NewsUid', uid, 'forever')
+      }
+      return uid
+    }
+    // api stauts handle
+    var startkey = '' // 上次请求数据中取
+    var newkey = '' // 上次请求数据中取
+    var idx =  0 // 已加载信息条数
+    var uid = getUid()
+    var isGetPosition = true
+    // var qid = '02151' // 渠道信息
+    var isFirst = true
+    return function (callback, error, isReset) {
+      var _this = this
+      // 重置请求信息
+      if (isReset) {
+        startkey = ''
+        newkey = ''
+        idx =  0
+        isFirst = true
+        _this.state.pagesList[_this.state.activeIndex] = 0
+        $l(this.target).find('.n256-tab-item')[this.state.activeIndex].innerHTML = ''
+      }
+      function getPosition (next) {
+        var position;
+        position = $l.cookie('n256Position') || ''
+        if (!isGetPosition || position) {
+          next && next(position)
+        } else {
+          $l.ajax({
+            method: 'jsonp',
+            url: '//guess.union2.50bang.org/adsapi/ci',
+            success: function (res) {
+              var position = res.c
+              next && next(position)
+              $l.cookie('n256Position', res.c)
+            },
+            error: function () {
+              next && next(position)
+            },
+            jsonp: 'jsonp',
+            jsonpCallback: 'n256position'
+          })
+          isGetPosition = false
+        }
+      }
+      function fetchNews (position) {
+        _this.newsStatistics(1)
+        window['isNewsLoading' + _this.hash] = true
+        var page = _this.state.pagesList[_this.state.activeIndex] + 1
+        var newsnum = isFirst ? _this.newsNumFirst : _this.newsNumPer
+        isFirst = false
+        var url = ''
+        switch (_this.newsOrigin) {
+          case 'dongfang': url = '//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02';break;
+          case 'yingshi': url = '//2345yingshi.dftoutiao.com/newsapi_pc/newsjp02';break;
+          default: url = '//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02';
+        }
+        $l.ajax({
+          method: 'jsonp',
+          url: url,
+          params: {
+            type: _this.tabData[_this.state.activeIndex][1],
+            startkey: startkey,
+            newkey: newkey,
+            pgnum: page,
+            uid: uid,
+            idx: idx,
+            qid: _this.dongfangNewsId,
+            position: position,
+            newsnum: newsnum
+          },
+          success: function (res) {
+            // api stauts handle
+            _this.state.pagesList[_this.state.activeIndex]++
+            startkey = res.endkey
+            newkey = res.newkey
+            idx += res.data.length
+            // other mession
+            _this.newsStatistics(2)
+            window['isNewsLoading' + _this.hash] = false
+            callback && callback(res.data)
+            // // 重置新闻排行距离底部距离
+          },
+          error: function () {
+            window['isNewsLoading' + _this.hash] = false
+            error && error()
+          }
+        })
+      }
+      getPosition(fetchNews)
+    }
+  })(),
+  getNews: (function () {
+    var times = 0
+    return function (isReset) {
+      //if(this.target.offsetWidth === 0) return
+      var _this = this
+      this.getDongfangNews(function (res) {
+        if (!res && !res.length) {
+          times++
+          if (times >= _this.reloadTimes) {
+            times = 0
+            return _this.showNonewsNotice(true)
+          }
+          setTimeout(function () {
+            _this.getNews()
+          }, _this.reloadInterval)
+        } else {
+          times = 0
+          _this.fillNews(res)
+          _this.showNonewsNotice(false)
+        }
+      }, function () {
+        times++
+        // // 首次请求失败隐藏
+        // if (_this.state.pagesList[0] <= 0) {
+        //   _this.target.style.display = 'none'
+        //   return
+        // }
+        if (times >= _this.reloadTimes) {
+          times = 0
+          _this.showNonewsNotice(true)
+          return
+        }
+        setTimeout(function () {
+          _this.getNews()
+        }, _this.reloadInterval)
+      }, isReset)
+    }
+  })(),
+  createTab: function () {
+    var tabContent = ''
+    for (var i = 0; i < this.tabData.length; i++) {
+      var sep = '|', imgUrl = this.tabData[i][2]
+      if (i === this.tabData.length - 1) {
+        sep = ''
+      }
+      tabContent += '<span data-type="' + this.tabData[i][1] +
+      '" data-index="' + i + '">' +
+      (imgUrl ? '<img class=tab-icon src="' + imgUrl + '" />' : '') +
+      this.tabData[i][0] + '</span>' +  sep
+      this.state.pagesList.push(0)
+      this.state.adsenseidList.push(this.adsenseid)
+      this.state.scrollPosition.push(0)
+    }
+    if (this.showRefreshBtn) {
+      tabContent += '<a href="javascript:;" class="refresh-btn">换一换</a>'
+    }
+    var div = document.createElement('div')
+    // div.id = 'n256-news-tab'
+    div.className = 'n256-news-tab' + (this.isShowTab ? '' : ' hide')
+    div.innerHTML = tabContent
+    this.target.appendChild(div)
+  },
+  createNewsContainer: function () {
+    var newsItemContainer = document.createElement('div')
+    newsItemContainer.className = 'n256-tab-item-container'
+    this.target.appendChild(newsItemContainer)
+    for(var i = 0; i < this.tabData.length; i++) {
+      var div = document.createElement('div')
+      // div.id = 'n256-tab-item-' + this.tabData[i][1]
+      div.className = 'n256-tab-item'
+      newsItemContainer.appendChild(div)
+    }
+  },
+  refresh: function () {
+    location.href = '#' + this.containerId
+    this.getNews(true)
+    this.showBottomNotice(false)
+  },
+  fillNews: function (newsData, isClear) {
+    var newsModule = this
+    var adNum360 = 0
+    var content = '', type
+    var newsContainer = $l(this.target).find('.n256-tab-item')[this.state.activeIndex]
+    var _this = this
+    for (var i = 0; i < newsData.length; i++) {
+      // 选取广告类型
+      var ad = ''
+      if ((i === this.firstAdPosition - 2 || (i - this.firstAdPosition - 1) % this.newsRadio === 0 && i + 1 > this.firstAdPosition) && this.showAd) {
+        var result = Math.random()
+        var percent = 0
+        for (var k in this.adConfig) {
+          if (this.adConfig.hasOwnProperty(k)) {
+            if (result < percent + this.adConfig[k] && result >= percent) {
+              type = k
+              break
+            }
+            percent += this.adConfig[k]
+          }
+        }
+        switch (type) {
+          case 'baidu': ad = this.baiduAdContainer(this.state.adsenseidList[this.state.activeIndex]); break
+          case '360': ad = this._360AdContainer(this.state.adsenseidList[this.state.activeIndex]); adNum360++;break
+        }
+        this.state.adsenseidList[this.state.activeIndex]++
+      }
+      // 选取新闻类型
+      var news
+      if (this.newsMode === 1) {
+        type = 'single'
+      } else if (this.newsMode === 2) {
+        if (newsData[i].miniimg.length >= 3) {
+          type = 'multi'
+        } else {
+          type = 'single'
+        }
+      } else if (this.newsMode === 3) {
+        if (newsData[i].miniimg.length >= 3) {
+          type = Math.random() >= 0.5 ? 'single' : 'multi'
+        } else {
+          type = 'single'
+        }
+      }
+      news = type == 'multi' ? this.multiImgNewsTemplate(newsData[i]) : this.singleImgNewsTemplate(newsData[i])
+      // pinjie
+      content += news
+      content += ad
+    }
+    if (isClear) {
+      newsContainer.innerHTML = ''
+    }
+    var div = document.createElement('div')
+    $l(div).attr('data-page', this.state.pagesList[this.state.activeIndex])
+    $l(div).addClass('page-container')
+    div.innerHTML = content
+    newsContainer.appendChild(div)
+    // 填充百度广告
+    var adBaidu = $l(div).find('.ad-baidu')
+    for (var i = 0; i < adBaidu.length; i++) {
+      var num = $l(adBaidu[i]).attr('data-num')
+      adBaidu[i].innerHTML = this.baiduAdTemplate([num])
+    }
+    if (!newsModule.adConfig[360]) {
+      setTimeout(function () {
+        newsModule.checkShow(null, true)
+      }, 600)
+    }
+    // 填充360广告
+    var _this = this
+    if (!adNum360) return
+    var ad360 = $l(div).find('.ad-360')
+    var _360Num = []
+    for (var i = 0; i < ad360.length; i++) {
+      _360Num.push($l(ad360[i]).attr('data-num'))
+    }
+    //console.log('get 360 ad')
+    this.get360Ad(adNum360, _360Num, function (ads) {
+      if (!ads) {
+        ads = []
+      }
+      // console.log('request 360num=' +adNum360 + ' 360广告位=' + ad360.length + ' 返回数量=' + ads.length)
+      var fillNum = Math.min(ad360.length, ads.length)
+      for (var i = 0; i < fillNum; i++) {
+        ad360[i].innerHTML = _this._360AdTemplate(ads[i])
+      }
+      // 未显示部分展示为百度ad
+      if (!_this.replace360Ad) return
+      for (var i = ads.length; i < ad360.length; i++) {
+        var num = $l(ad360[i]).attr('data-num')
+        $l(ad360[i]).removeClass('ad-360').addClass('ad-baidu')
+        ad360[i].innerHTML = _this.baiduAdTemplate([num])
+      }
+      // 更新后检测展现部分
+      setTimeout(function () {
+        newsModule.checkShow(null, true)
+      }, 600)
+      setTimeout(function () {
+        newsModule.update && newsModule.update()
+        //$l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex].paddingBottom = '0px'
+      }, 0)
+    })
+  },
+  showNonewsNotice: function (isShow) {
+    var loadNotice = $l(this.target).find('.n256-news-loadnotice')
+    var loadMore = $l(this.target).find('.n256-load-more-btn')
+    var noNewsNotice =$l(this.target).find('.n256-load-more-btn')
+    if (isShow) {
+      loadNotice.addClass('hide')
+      loadMore.addClass('hide')
+      noNewsNotice.removeClass('hide')
+    } else {
+      loadNotice.removeClass('hide')
+      loadMore.addClass('hide')
+      noNewsNotice.addClass('hide')
+    }
+  },
+  showBottomNotice: function (isShow) {
+    var loadNotice = $l(this.target).find('.n256-news-loadnotice')
+    var text = isShow ? '已经到底啦，点击重新加载' : '加载中...'
+    loadNotice[0] && (loadNotice[0].innerHTML = text)
+  },
+  _360Statistics: function (urlList) {
+    function send (url) {
+      var newImg = new Image()
+      newImg.onload = newImg.onerror = newImg.onabort = function () {
+        newImg.onload = newImg.onerror = newImg.onabort = null
+      }
+      newImg.src = url
+    }
+    for (var i = 0; i < urlList.length; i++) {
+      send(urlList[i])
+    }
+  },
+  newsStatistics: function (type, nurl, nindex) {
+   $l.ajax({
+     method: 'jsonp',
+     url: '//guess.union2.50bang.org/trrs',
+     params: {
+       adsenseid: this.newsAdsenseid,
+       user: {
+         uid: ''
+       },
+       site: {
+         url: location.href,
+         referer: document.referrer
+       },
+       app: {},
+       device: {
+         userAgent: navigator.userAgent,
+         idfa: '',
+         imei: '',
+         deviceType: 0,
+         brand: '',
+         model: '',
+         os: '',
+         osv: '',
+         network: ''
+       },
+       data: {
+         type: 7,
+         action: 'news',
+         acode: type,
+         atime: parseInt(new Date().getTime() / 1000),
+         url: location.href,
+         rurl: document.referrer,
+         tab: this.tabData[this.state.activeIndex][1],
+         nid: '',
+         nurl: nurl || '',
+         nindex: nindex || '',
+         hindex: '',
+         channelid: 1003
+       }
+     }
+   })
+  },
+  adStatistics: function (type, aurl, aindex, adsenseid, channelid) {
+    $l.ajax({
+      method: 'jsonp',
+      url: '//guess.union2.50bang.org/trrs',
+      params: {
+        adsenseid: this.newsAdsenseid,
+        user: {
+          uid: ''
+        },
+        site: {
+          url: location.href,
+          referer: document.referrer
+        },
+        app: {},
+        device: {
+          userAgent: navigator.userAgent,
+          idfa: '',
+          imei: '',
+          deviceType: 0,
+          brand: '',
+          model: '',
+          os: '',
+          osv: '',
+          network: ''
+        },
+        data: {
+          type: 7,
+          action: 'ad',
+          acode: type,
+          atime: parseInt(new Date().getTime() / 1000),
+          url: location.href || '',
+          rurl: document.referrer || '',
+          tab: this.tabData[this.state.activeIndex][1],
+          adsenseid: adsenseid || '',
+          aurl: aurl || '',
+          aindex: aindex || '',
+          channelid: channelid || ''
+        }
+      }
+    })
+  },
+  getAdPosition: function (evt) {
+    var offsetX = evt.offsetX
+    var offsetY = evt.offsetY
+    var target = evt.target || evt.srcElement
+    var offsetTop = target.offsetTop
+    var offsetLeft = target.offsetLeft
+    return {
+      x: offsetX + offsetTop,
+      y: offsetY + offsetLeft
+    }
+  },
+  bindEvent: function () {
+    var newsModule = this
+    // 点击加载更多按钮
+    $l(newsModule.target).find('.n256-load-more-btn').on('click', function () {
+     newsModule.getNews()
+    })
+    // 点击 到底了 按钮
+    $l(newsModule.target).find('.n256-news-loadnotice').on('click', function () {
+      newsModule.refresh()
+    })
+    // 点击刷新按钮
+    $l(newsModule.target).find('.refresh-btn').on('click', function () {
+      newsModule.refresh()
+    })
+    // tab切换
+    $l(newsModule.target).find('.n256-news-tab').on(newsModule.changeTabWay === 1 ? 'mouseover' : 'click', 'span', clickTabHandle)
+    function clickTabHandle () {
+      newsModule.showBottomNotice(false)
+      var page = newsModule.state.pagesList[newsModule.state.activeIndex]
+      if (page >= newsModule.loadPage) {
+       $l(newsModule.target).find('.n256-news-loadnotice').addClass('hide')
+       $l(newsModule.target).find('.n256-load-more-btn').removeClass('hide')
+      } else {
+       $l(newsModule.target).find('.n256-news-loadnotice').removeClass('hide')
+       $l(newsModule.target).find('.n256-load-more-btn').addClass('hide')
+      }
+      var isvisited = $l(this).attr('isvisited')
+      var tabs = $l(newsModule.target).find('.n256-news-tab').child('span')
+      var index = $l(this).attr('data-index')
+      var type = $l(this).attr('data-type')
+      $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab')
+      $l(tabs[index]).addClass('active-tab')
+      var tabs = $l(newsModule.target).find('.n256-tab-item')
+      $l(tabs[newsModule.state.activeIndex]).removeClass('active-tab-item')
+      $l(tabs[index]).addClass('active-tab-item')
+      newsModule.state.activeIndex = index
+      var scrollP = newsModule.state.scrollPosition[newsModule.state.activeIndex]
+      if (newsModule.containerHeight) {
+        if (newsModule.scrollPosition === 'top') {
+          newsModule.newsContainer.scrollTop = 0
+        } else if (newsModule.scrollPosition === 'lastPosition') {
+          newsModule.newsContainer.scrollTop = scrollP
+        }
+      } else {
+        if (newsModule.scrollPosition === 'top') {
+          window.scrollTo(0, 0)
+        } else if (newsModule.scrollPosition === 'lastPosition'){
+          window.scrollTo(0, scrollP)
+        }
+      }
+      if (isvisited) {
+        return
+      } else if (!window['isNewsLoading' + newsModule.hash]) {
+        newsModule.getNews(true)
+        $l(this).attr('isvisited', 'true')
+      }
+    }
+     // 滚动到底部行为
+     function scrollLoadHandle () {
+       var docHeight
+       var scrollTop
+       var clientHeight
+       if (newsModule.containerHeight) {
+         docHeight = newsModule.newsContainer.scrollHeight
+         scrollTop = newsModule.newsContainer.scrollTop
+         clientHeight = newsModule.newsContainer.clientHeight
+       } else {
+         docHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+         scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+         clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+       }
+       var spaceToBottom = docHeight - Math.ceil(scrollTop + clientHeight)
+       // 记录滚动位置
+       newsModule.state.scrollPosition[newsModule.state.activeIndex] = scrollTop
+       // 滚动到底部固定
+       if (newsModule.actionAtBottom === 'fixed') {
+         var target = $l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex]
+         var targetH = target.offsetHeight
+         var offsetT = $l(newsModule.newsContainer).offset().top
+         var scrollT = window.pageYOffset || (document.documentElement || document.body).scrollTop
+         var clientH = window.innerHeight || (document.documentElement || document.body).clientHeight
+
+         // 底部有遮挡物时平滑上提
+         if (spaceToBottom <= newsModule.topInstance) {
+           //newsModule.newsContainer.style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+           $l(target)[0].style.paddingBottom = newsModule.topInstance - spaceToBottom + 'px'
+         } else {
+           $l(target)[0].style.paddingBottom = '0px'
+         }
+         if (targetH + offsetT - scrollT <= clientH) {
+           $l(target).addClass('fixed-position')
+         } else {
+           $l(target).removeClass('fixed-position')
+         }
+       } else if (newsModule.actionAtBottom === 'load') {
+         // 加载页数及按钮控制
+         if (newsModule.state.pagesList[newsModule.state.activeIndex] >= newsModule.maxPage) {
+           return newsModule.showBottomNotice(true)
+         } else if (newsModule.state.pagesList[newsModule.state.activeIndex] >= newsModule.loadPage){
+           newsModule.showBottomNotice(true)
+           $l(newsModule.target).find('.n256-news-loadnotice').addClass('hide')
+           $l(newsModule.target).find('.n256-load-more-btn').removeClass('hide')
+           return
+         }
+         // 加载下一页
+         if (spaceToBottom <= newsModule.instance) {
+          if (!window['isNewsLoading' + newsModule.hash]) {
+            newsModule.getNews()
+          }
+        }
+      }
+    }
+    var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
+    if (window.addEventListener) {
+      scrollTarget.addEventListener('scroll', scrollLoadHandle)
+    } else {
+      scrollTarget.attachEvent('onscroll', scrollLoadHandle)
+    }
+  },
+  bindStatisticsEvent: function () {
+    var newsModule =  this
+    // 点击360广告
+    var timeStart, timeEnd
+    $l(newsModule.target).on('mousedown', '.ad-360', function (evt) {
+     timeStart = new Date().getTime()
+    })
+    $l(newsModule.target).on('mouseup', '.ad-360', function (evt) {
+      if (evt.button === 2) return
+      var target = $l($l(this).child()[0])
+      var clktk = target.attr('data-clktk')
+      var timeEnd = new Date().getTime()
+      clktk = clktk.replace('__EVENT_TIME_START__', timeStart)
+      clktk = clktk.replace('__EVENT_TIME_END__', timeEnd)
+      clktk = clktk.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
+      clktk = clktk.replace('__OFFSET_Y__', newsModule.getAdPosition(evt).y)
+      clktk = clktk.split(',')
+      // 跳转链接处理
+      var url = target.attr('data-url')
+      url = url.replace('__EVENT_TIME_START__', timeStart)
+      url = url.replace('__EVENT_TIME_END__', timeEnd)
+      url = url.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
+      url = url.replace('__OFFSET_Y__', newsModule.getAdPosition(evt).y)
+      target.attr('href', url)
+      // 发送360点击统计
+      newsModule._360Statistics(clktk)
+      // 发送内部点击统计
+      var aurl = url
+      var aindex
+      var page = $l(this.parentNode).attr('data-page')
+      var channelid = '1001'
+      if (page >= 2) {
+        aindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+      } else {
+        aindex = $l(this).index()
+      }
+      var adsenseid = $l(this).attr('data-num')
+      newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
+    })
+    // 点击新闻
+    $l(newsModule.target).on('click', '.news-item', function (evt) {
+      if (evt.button === 2) return
+      var type = 4
+      var nurl = $l(this).attr('data-url')
+      var nindex = 0
+      // var hindex = $l(this).attr('data-num')
+      var page = $l(this.parentNode).attr('data-page')
+      if (page >= 2) {
+        nindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+      } else {
+        nindex = $l(this).index()
+      }
+      newsModule.newsStatistics(type, [nurl], [nindex + 1])
+      var url = $l(this).attr('data-url')
+    })
+    // // 点击百度广告
+    // function clickBaiduAdHandle (evt) {
+    //   // var target = $l(this).child().eq(0)
+    //   var aurl = ''
+    //   var aindex
+    //   var page = $l(this.parentNode).attr('data-page')
+    //   var channelid = '1002'
+    //   if (page >= 2) {
+    //     aindex = $l(this).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+    //   } else {
+    //     aindex = $l(this).index()
+    //   }
+    //   var adsenseid = $l(this).attr('data-num')
+    //   newsModule.adStatistics(4, aurl, aindex + 1, [adsenseid], channelid)
+    // }
+    // $l(newsModule.target).on('click', '.ad-baidu', function () {
+    //   if (evt.button === 2) return
+    //   clickBaiduAdHandle.call(this, evt)
+    // })
+    // 所有内容展现时统计处理
+    var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
+    var showStatisticsHandle = (function () {
+      var prevTime = 0, times = 0, nowTime = 0
+      return function (evt, forceExecute) {
+        if (!forceExecute) {
+          // 过滤执行次数
+          var scrollSpaceNow
+          times++
+          if (newsModule.scrollOptimizeMethod === 'times') {
+            if (times >= newsModule.scrollTimes) {
+              times = 0
+            } else {
+              return
+            }
+          } else {
+            nowTime = new Date().getTime()
+            if (nowTime - prevTime > newsModule.scrollInterval) {
+              prevTime = nowTime
+            } else {
+              return
+            }
+          }
+        }
+        // 执行展现统计处理
+        var container = $l(newsModule.target).find('.n256-tab-item').eq(newsModule.state.activeIndex)
+        var newsList = container.find('.news-item')
+        var _360Ad = container.find('.ad-360')
+        var baiduAd = container.find('.ad-baidu')
+        for (var i = 0; i < newsList.length; i++) {
+          var isvisited = $l(newsList[i]).attr('isvisited')
+          if (!isvisited && $l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace)) {
+            // 参数处理
+            var nindex = 0
+            var nurl = $l(newsList[i]).attr('data-url')
+            var page = $l(newsList[i].parentNode).attr('data-page')
+            if (page >= 2) {
+              nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              nindex = $l(newsList[i]).index()
+            }
+            // 展现的新闻放入缓冲区
+            newsModule.newsBuffer.nurl.push(nurl)
+            newsModule.newsBuffer.nindex.push(nindex + 1)
+            $l(newsList[i]).attr('isvisited', 'true')
+          }
+        }
+        for (var i = 0; i < _360Ad.length; i++) {
+          var item = $l(_360Ad[i])
+          var isvisited = item.attr('isvisited')
+          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
+            // 参数处理
+            var aurl = item.attr('data-url')
+            var adsenseid = item.attr('data-num')
+            var aindex = 0
+            var channelid = 1001
+            var page = $l(item[0].parentNode).attr('data-page')
+            if (page >= 2) {
+              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              aindex = item.index()
+            }
+            // 展现的360广告直接发送统计
+            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+            if (item.child()[0]) {
+              var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
+              newsModule._360Statistics(imptk)
+            }
+            item.attr('isvisited', 'true')
+          }
+        }
+        for (var i = 0; i < baiduAd.length; i++) {
+          var item = $l(baiduAd[i])
+          var isvisited = item.attr('isvisited')
+          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
+            // 参数处理
+            var aurl = item.attr('data-url')
+            var adsenseid = item.attr('data-num')
+            var aindex = 0
+            var channelid = 1002
+            var page = $l(baiduAd[i].parentNode).attr('data-page')
+            if (page >= 2) {
+              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+            } else {
+              aindex = item.index()
+            }
+            // 展现的百度广告直接发送统计
+            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+            item.attr('isvisited', 'true')
+          }
+        }
+      }
+    })()
+    this.checkShow = showStatisticsHandle
+    if (window.addEventListener) {
+      scrollTarget.addEventListener('scroll', showStatisticsHandle)
+    } else {
+      scrollTarget.attachEvent('onscroll', showStatisticsHandle)
+    }
+    // 对内部发送新闻展现统计
+    setInterval(function () {
+      if (newsModule.newsBuffer.nurl && newsModule.newsBuffer.nurl.length) {
+        newsModule.newsStatistics(3, newsModule.newsBuffer.nurl, newsModule.newsBuffer.nindex)
+      }
+      newsModule.newsBuffer.nurl.length = 0
+      newsModule.newsBuffer.nindex.length = 0
+    }, newsModule.statisticsInterval)
+  }
+}

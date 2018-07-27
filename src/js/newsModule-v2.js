@@ -1,4 +1,3 @@
-'use strict';
 if (typeof console === 'undefined') {
   window.console = {
     log: function () {},
@@ -885,7 +884,7 @@ NewsModule.prototype = {
       this.state.scrollPosition.push(0)
     }
     if (this.showRefreshBtn) {
-      tabContent += '<p class="refresh-btn">换一换</p>'
+      tabContent += '<a href="javascript:;" class="refresh-btn">换一换</a>'
     }
     var div = document.createElement('div')
     // div.id = 'n256-news-tab'

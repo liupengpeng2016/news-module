@@ -1,1 +1,127 @@
-"use strict";!function(){function t(t){t.target||console.error("target of params is required"),this.target="string"==typeof t.target?document.getElementById(t.target):t.target,this.init()}window.console||(window.console.log=window.console.error=function(){}),t.prototype={constructor:t,init:function(){this.createScrollbar(),this.setScrollbarP(),this.setScrollbarH(),this.bindEvent()},refresh:function(){this.scrollHandle&&this.scrollHandle()},dHeight:function(){return this.target.scrollHeight},sHeight:function(t){return t&&(this.target.scrollTop=t),t||this.target.scrollTop},cHeight:function(){return this.target.clientHeight},createScrollbar:function(){var t=document.createElement("div"),e=document.createElement("div");t.className="scrollbar-bar",e.className="scrollbar-block",t.appendChild(e),this.target.parentNode.style.position="relative",this.target.parentNode.appendChild(t),this.scrollbar=e,this.scrollbarC=t},setScrollbarH:function(){this.scrollbar.style.height=this.cHeight()/this.dHeight()*this.cHeight()+"px"},setScrollbarP:function(){this.scrollbar.style.top=this.sHeight()/this.dHeight()*this.cHeight()+"px"},on:function(t,e,i){window.addEventListener?t.addEventListener(e,i):t.attachEvent("on"+e,i)},bindEvent:function(){var i=this;function t(){i.cHeight()>=i.dHeight()?i.scrollbarC.style.display="none":i.scrollbarC.style.display="block",i.setScrollbarP(),i.setScrollbarH()}this.on(this.target,"scroll",t);var n,o=!1;function e(t){if(2!==(t=t||event).button)return"mousedown"===t.type?o=!0:"mouseup"===t.type?o=!1:void 0}this.on(document,"mousemove",function(t){if(t=t||event,o&&(t.preventDefault&&t.preventDefault(),t.returnValue=!1),o){var e=(t.clientY-n)/i.cHeight()*i.dHeight()+i.sHeight();i.sHeight(e)}n=t.clientY}),this.on(this.scrollbar,"mouseenter",function(t){t=t||event,n=t.clientY}),this.on(this.scrollbar,"mousedown",e),this.on(document,"mouseup",e),this.on(window,"scroll",function(){t()}),this.on(this.target,"DOMSubtreeModified",t),this.scrolHandle=t}},window.Scrollbar=t}();
+(function () {
+  if (!window.console) {
+    window.console.log = window.console.error = function () {}
+  }
+  function Scrollbar (params) {
+    /*
+      {
+      target: idstr / dom
+    }
+    */
+    // 参数校验
+    if (!params.target) {
+      console.error('target of params is required')
+    }
+    // 初始化参数
+    this.target = typeof params.target === 'string' ? document.getElementById(params.target) : params.target
+    this.init()
+  }
+  Scrollbar.prototype = {
+    constructor: Scrollbar,
+    init: function () {
+      var _this = this
+      this.createScrollbar()
+      this.setScrollbarP()
+      this.setScrollbarH()
+      this.bindEvent()
+    },
+    refresh: function () {
+      this.scrollHandle && this.scrollHandle()
+    },
+    dHeight: function () {
+      return this.target.scrollHeight
+    },
+    sHeight: function (num) {
+      if (num) {
+        this.target.scrollTop = num
+      }
+      return num ? num : this.target.scrollTop
+    },
+    cHeight: function () {
+      return this.target.clientHeight
+    },
+    createScrollbar: function () {
+      var bar = document.createElement('div')
+      var block = document.createElement('div')
+      bar.className = 'scrollbar-bar'
+      block.className = 'scrollbar-block'
+      bar.appendChild(block)
+      this.target.parentNode.style.position = 'relative'
+      this.target.parentNode.appendChild(bar)
+      // huan cun
+      this.scrollbar = block
+      this.scrollbarC = bar
+    },
+    setScrollbarH: function () {
+      this.scrollbar.style.height = this.cHeight() / this.dHeight() * this.cHeight() + 'px'
+    },
+    setScrollbarP: function () {
+      this.scrollbar.style.top = this.sHeight() / this.dHeight() * this.cHeight() + 'px'
+    },
+    on: function (target, evt, callback) {
+      if (window.addEventListener) {
+        target.addEventListener(evt, callback)
+      } else {
+        target.attachEvent('on' + evt, callback)
+      }
+    },
+    bindEvent: function () {
+      var _this = this
+      function isShow() {
+        if (_this.cHeight() >= _this.dHeight()) {
+          _this.scrollbarC.style.display = 'none'
+        } else {
+          _this.scrollbarC.style.display = 'block'
+        }
+      }
+      // 滚动时滚动条位置处理
+      function scrollHandle () {
+        isShow()
+        _this.setScrollbarP()
+        _this.setScrollbarH()
+      }
+      this.on(this.target, 'scroll', scrollHandle)
+
+      // 拖动滚动条处理
+      var startP, isClicking = false
+      function mousemoveHandle (evt) {
+        var evt = evt || event
+        if (isClicking) {
+          evt.preventDefault && evt.preventDefault()
+          evt.returnValue = false
+        }
+        if (isClicking) {
+          var scrollT = (evt.clientY - startP) / _this.cHeight() * _this.dHeight() + _this.sHeight()
+          _this.sHeight(scrollT)
+        }
+        startP = evt.clientY
+      }
+      function mouseenterHandle (evt) {
+        var evt = evt || event
+        startP = evt.clientY
+      }
+      function mouseClickHandle (evt) {
+        var evt = evt || event
+        if (evt.button === 2) {
+          return
+        }
+        if (evt.type === 'mousedown') {
+          return isClicking = true
+        }
+        if (evt.type === 'mouseup') {
+          return isClicking = false
+        }
+      }
+      this.on(document, 'mousemove', mousemoveHandle)
+      this.on(this.scrollbar, 'mouseenter', mouseenterHandle)
+      this.on(this.scrollbar, 'mousedown', mouseClickHandle)
+      this.on(document, 'mouseup', mouseClickHandle)
+      this.on(window, 'scroll', function() {
+        scrollHandle()
+      })
+      this.on(this.target, 'DOMSubtreeModified', scrollHandle)
+      this.scrolHandle = scrollHandle
+    }
+  }
+  window.Scrollbar = Scrollbar
+})()

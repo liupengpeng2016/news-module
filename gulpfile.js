@@ -82,7 +82,7 @@ gulp.task('js-dist', ()=>{
   .pipe(minifyJs())
   .pipe(rev())
   .pipe(gulp.dest(distPath.js))
-  .pipe(rev.manifest())
+  //.pipe(rev.manifest())
   .pipe(gulp.dest(distPath.js))
 })
 //image 处理
@@ -123,10 +123,10 @@ gulp.task('css-dist-nohash', () => {
 //js处理
 gulp.task('js-dist-nohash', ()=>{
   return gulp.src(srcPath.js)
-  .pipe(babel({
-    presets: ['env'],
-  }))
-  .pipe(minifyJs())
+  // .pipe(babel({
+  //   presets: ['env'],
+  // }))
+  //.pipe(minifyJs())
   .pipe(gulp.dest(distPath.js))
 })
 //image 处理
@@ -231,9 +231,9 @@ gulp.task('check-dist', ()=>{
   })
 })
 // build
-gulp.task('build', gulpSequence('clean', ['images-dist', 'js-dist', 'library'], 'css-compile', 'css-dist', 'html-dist', 'clean-manifest'));
+//gulp.task('build', gulpSequence('clean', ['images-dist', 'js-dist', 'library'], 'css-compile', 'css-dist', 'html-dist', 'clean-manifest'));
 //build-nohash
-gulp.task('build-noversion', gulpSequence('clean', ['library', 'css-dist-nohash', 'images-dist-nohash', 'js-dist-nohash', 'html-dist-nohash']));
+gulp.task('build', gulpSequence('clean', ['library', 'css-dist-nohash', 'images-dist-nohash', 'js-dist-nohash', 'html-dist-nohash']));
 // dev
 gulp.task('dev', (cb)=>{
   gulpSequence('clean', ['library', 'css-dev','images-dev', 'js-dev', 'html-dev'], 'browserSync')(cb);
