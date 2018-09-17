@@ -4,11 +4,10 @@ $containerId: #n256-news-container !default; //容器id
 $containerW:auto !default; // 容器宽
 $borderC: #d8dbe5 !default; // 容器边框颜色
 $fontF: "微软雅黑" !default; // 容器内字体类型
-$tabHeight: 40px !default; // tab 高度
-
 $newsListW:auto !default; // 每个新闻的宽度
 $newsM:0px 0px 0px 20px !default; // 每个新闻的margin
 $newsP:20px 0px 20px 0px !default; // 每个新闻的padding
+$tabHeight: 40px !default; // tab 高度
 $singleImgSize:180px 120px !default; // 单图新闻中图片的宽高
 $singleImgM: 0 10px 0 0 !default; //单图新闻中图片的margin
 $multiImgSize: 180px 120px !default; // 多图新闻中图片的宽高
@@ -154,9 +153,8 @@ $scrollbar-color:#555 !default;// 滚动条颜色
   .n256-news-item-singleImg {
     .n256-news-img{
       margin:$singleImgM;
-      float:left;
+      float: left;
       overflow: hidden;
-      font-size: 0;
       width:nth($singleImgSize, 1);
       height:nth($singleImgSize, 2);
       position: relative;
@@ -301,7 +299,9 @@ $scrollbar-color:#555 !default;// 滚动条颜色
     overflow: hidden;
     iframe{
       display: block;
-      border-bottom:1px solid #eee;
+      margin:0;
+      padding:0;
+      border-bottom: 1px solid #eee;
     }
   }
 }

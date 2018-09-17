@@ -1,8 +1,8 @@
 $containerW:900px; // 容器宽
-$newsListW:400px; // 每个新闻的宽度
+$newsListW:900px; // 每个新闻的宽度
 $singleImgSize: 90px 60px;
-$newsP:26px 0;
+$newsP:53px 0 53px;
 $titleFont:12px;
 $multiImgSize: 90px 60px;
-$containerId: '#test';
+$containerId: '#test2';
 @import './news.scss';

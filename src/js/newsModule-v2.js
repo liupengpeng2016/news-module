@@ -279,7 +279,7 @@ var $lMethods = {
           script.loaded = true
           obj.error && obj.error()
         }
-      }, obj.timeout || 3000)
+      }, obj.timeout || 5000)
     } else {
       if (window.XMLHttpRequest) {
         xml = new XMLHttpRequest()
@@ -294,8 +294,8 @@ var $lMethods = {
       xml.setRequestHeader("Content-type","application/x-www-form-urlencoded");
       xml.onreadystatechange = function () {
         if (xml.readyState == 4) {
-          if (xml.status == 200 || xml.status == 304) {
-            obj.success && obj.success(xml.responseText)
+          if (xml.status == 200) {
+            obj.success && obj.success(eval('(' + xml.responseText + ')'))
           } else {
             obj.error && obj.error()
           }
@@ -328,31 +328,6 @@ var $lMethods = {
       var reg = new RegExp(key + '=' + '[^;=]*')
       return document.cookie.match(reg) && document.cookie.match(reg)[0].split('=')[1]
     }
-  },
-  open: function (url) {
-    var id = 'n256' + Math.random().toString(26).slice(2)
-    var a = document.createElement('a')
-    a.href = url
-    a.id = id
-    a.target = '_blank'
-    a.style.display = 'none'
-    document.body.appendChild(a)
-    setTimeout(function () {
-      document.getElementById(id).click()
-    }, 0)
-  },
-  parseTime: function (time) {
-    function format(num) {
-      return num >= 10 ? num : '0' + num
-    }
-    var time = new Date(time)
-    var year = time.getFullYear()
-    var month = time.getMonth() + 1
-    var date = time.getDate()
-    var hours = time.getHours()
-    var minus = time.getMinutes()
-    var seconds = time.getSeconds()
-    return format(month) + '月' + format(date) + '日 ' + format(hours) + ':' + format(minus)
   }
 }
 for (var i in $lMethods) {
@@ -370,7 +345,7 @@ function NewsModule (params) {
   this.tabData = params.tabData || [['头条', 'toutiao']]
   this.newsNumPer = params.newsNumPer || 18
   this.newsNumFirst = params.newsNumFirst || 18
-  this.newsRadio = params.newsRadio || 3
+  this.newsRatio = params.newsRatio || params.newsRadio || 3
   this.showAd = params.showAd === false ? false : true
   this.newsOrigin = params.newsOrigin || 'dongfang'
   this.instance = params.instance || 0
@@ -419,17 +394,42 @@ function NewsModule (params) {
   //sixth add
   this.adInsertWay = params.adInsertWay || 'ratio'
   this.showRefreshBtn = params.showRefreshBtn && true
+  this.timeFormat = params.timeFormat === 2 ? 2 : 1
   // computed params
   this.newsBuffer = {nurl: [], nindex: []}
   this.target = $l('#' + this.containerId)[0]
-  this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRadio + 1)
-  this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRadio + 1)
-  this.hash = Math.random().toFixed(6).slice(2)
+  this.adNumPer = parseInt((this.newsNumPer - 1) / this.newsRatio + 1)
+  this.adNumFirst = parseInt((this.newsNumFirst - 1) / this.newsRatio + 1)
   this.state = {
-    activeIndex: 0,
-    pagesList: [],
-    adsenseidList:[],
-    scrollPosition: []
+    activeIndex: 0, // 当前活动tab
+    pagesList: [],// 各tab当前页数
+    adsenseidList:[],// 各tab当前广告位id
+    scrollPosition: [], // 滚动位置信息
+    loadingNum: 0, // 接口处在加载中的数量
+    dongfangApi: { // 东方接口请求状态信息
+      startkey: '', // 上次请求数据中取
+      newkey: '', // 上次请求数据中取
+      idx:  0, // 已加载信息条数
+      uid: (function () {
+            var uid = $l.cookie('n256NewsUid');
+            if (!uid) {
+              uid = Math.random().toString(26).slice(2) + Math.random().toString(26).slice(2)
+              $l.cookie('n256NewsUid', uid, 'forever')
+            }
+            return uid
+      })(),
+      isGetPosition: true, // 是否获取位置信息
+      isFirst: true // 是否第一次加载
+    },
+    '360Api': { // 360接口请求状态
+      uid: Math.random().toString(26).slice(2),
+      reqtimes: 1 // 请求次数
+    },
+    scroll: { // 页面滚动状态信息
+      prevTime: 0,
+      times: 0,
+      nowTime: 0
+    }
   }
   // 参数校验
   if (!params.adsenseid) {
@@ -514,10 +514,7 @@ function NewsModule (params) {
   var firstPageLoaded = false
   function firstLoadHandler () {
     if (firstPageLoaded) return
-    var container = $l('#' + _this.containerId)
-    var clienty = container.offset().top - (window.pageYOffset || document.documentElement.scrollTop)
-    var loadp = (window.innerHeight || document.documentElement.clientHeight) + _this.loadInstance
-    if( clienty <= loadp) {
+    if( _this.spaceToBottom(_this.target) <= _this.loadInstance) {
       $l(_this.target).find('.n256-news-tab').child().eq(0).trigger(eventType);
       firstPageLoaded = true
       if (window.addEventListener) {
@@ -591,7 +588,7 @@ NewsModule.prototype = {
         '<div class="content">' +
         '<span class="title">' + item.topic + '</span>' +
         (this.hideInfo ? '' :
-        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
+        '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + this.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
         '</div>' +
       '</div>' +
     '</a>'
@@ -607,7 +604,7 @@ NewsModule.prototype = {
         (this.isShowFourImg ? '<li>' + (item.miniimg[3] ? '<img src="' + item.miniimg[3].src + '" alt="" style="height:' + (this.forceStretchNewsImg ? '100%' : 'auto') + '">' : '<span class="check-info">查看详情>></span>') + '</li>' : '') +
       '</ul>' +
       (this.hideInfo ? '' :
-      '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + $l.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
+      '<p class="n256-news-info"><span class="type">' + item.tpch + '</span><span>' + item.source + '</span><span>' + this.parseTime(parseInt(item.date) * 1e3) + '</span></p>') +
       '</a>'
     return news
   },
@@ -661,109 +658,127 @@ NewsModule.prototype = {
     }
     return ad
   },
-  baiduAdTemplate: (function () {
-    var order = 0, ids = [];
-    return function (num) {
-      if (!ids.length) {
-        for (var i in this.baiduAdIds) {
-          if (this.baiduAdIds.hasOwnProperty(i)) {
-            ids.push(this.baiduAdIds[i].id)
-          }
-        }
-        if (ids.length === 0) {
-          ids.push(this.baiduAdId)
+  baiduAdTemplate: function (num) {
+    this.order_baiduAd = this.order_baiduAd || 0;
+    this.ids_baidu = this.ids_baidu || [];
+    if (!this.ids_baidu.length) {
+      for (var i in this.baiduAdIds) {
+        if (this.baiduAdIds.hasOwnProperty(i)) {
+          this.ids_baidu.push({id: this.baiduAdIds[i].id, order: this.baiduAdIds[i].order || i, url: this.baiduAdIds[i].url})
         }
       }
-      var iframeId ='n256' + Math.random().toString(16).slice(2)
-      var result = Math.random();
-      var min = 0;
-      var adId = '';
-      if (this.adInsertWay === 'ratio') {
-        for(var i in this.baiduAdIds) {
-          if (this.baiduAdIds.hasOwnProperty(i)) {
-            if (result >= min && result < this.baiduAdIds[i].precent + min) {
-              adId = this.baiduAdIds[i].id;
-              break;
-            }
-            min += this.baiduAdIds[i].precent
-          }
-        }
-        adId = adId || this.baiduAdId
-      } else if (this.adInsertWay === 'order') {
-        adId = ids[order]
-        order++
-        order = order > ids.length - 1 ? 0 : order
+      if (this.ids_baidu.length === 0) {
+        this.ids_baidu.push({id: this.baiduAdId, order: 1, url: ''})
       }
-      this.adStatistics(1, null, null, num, 1002)
+      this.ids_baidu.sort(function(val1, val2) {return val1.order - val2.order})
+    }
+    var iframeId ='n256' + Math.random().toString(16).slice(2)
+    var result = Math.random();
+    var min = 0;
+    var adId = '', adUrl = '';
+    if (this.adInsertWay === 'ratio') {
+      for(var i in this.baiduAdIds) {
+        if (this.baiduAdIds.hasOwnProperty(i)) {
+          if (result >= min && result < this.baiduAdIds[i].precent + min) {
+            adId = this.baiduAdIds[i].id;
+            adUrl = this.baiduAdIds[i].url;
+            break;
+          }
+          min += this.baiduAdIds[i].precent
+        }
+      }
+      adId = adId || this.baiduAdId;
+    } else if (this.adInsertWay === 'order') {
+      adId = this.ids_baidu[this.order_baiduAd].id
+      adUrl = this.ids_baidu[this.order_baiduAd].url
+      this.order_baiduAd++
+      this.order_baiduAd = this.order_baiduAd > this.ids_baidu.length - 1 ? 0 : this.order_baiduAd
+    }
+    this.adStatistics(1, null, null, num, 1002)
+    if (adUrl) {
+      return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?url=' + encodeURIComponent(adUrl) + '#' + iframeId + '"/>'
+    } else {
       return '<iframe frameborder="0" width="100%" id="' + iframeId + '" scrolling="no" src="' + this.baiduAdUrl + '?id=' + adId + '#' + iframeId + '"/>'
     }
-  })(),
-  get360Ad: (function () {
-    var uid = Math.random().toString(26).slice(2)
-    var reqtimes = 1
-    return function (impct, num, callback) {
-      var _this = this
-      window['isNewsLoading' + this.hash] = true
-      this.adStatistics(1, null, null, num, 1001)
-      $l.ajax({
-        method: 'jsonp',
-        params: {
-          of: 4,
-          newf: 1,
-          type: 1,
-          showid: _this._360adId,
-          uid: uid,
-          reqtimes: reqtimes,
-          impct: impct
-        },
-        jsonp: 'jsonp',
-        jsonpCallback: 'n360ad',
-        url: '//show.g.mediav.com/s',
-        success: function (res) {
-          _this.adStatistics(2, null, null, num, 1001)
-          window['isNewsLoading' + _this.hash] = false
-          callback && callback(res.ads)
-          reqtimes++
-        },
-        error: function () {
-          window['isNewsLoading' + _this.hash] = false
-          callback && callback([])
-        }
-      })
+  },
+  parseTime: function (time) {
+    function format(num) {
+      return num >= 10 ? num : '0' + num
     }
-  })(),
-  getDongfangNews: (function () {
-    function getUid () {
-      var uid = $l.cookie('n256NewsUid');
-      if (!uid) {
-        uid = Math.random().toString(26).slice(2) + Math.random().toString(26).slice(2)
-        $l.cookie('n256NewsUid', uid, 'forever')
+    var resultStr = ''
+    var time = new Date(time)
+    if (this.timeFormat === 1) {
+      var year = time.getFullYear()
+      var month = time.getMonth() + 1
+      var date = time.getDate()
+      var hours = time.getHours()
+      var minus = time.getMinutes()
+      var seconds = time.getSeconds()
+      resultStr += format(month) + '月' + format(date) + '日 ' + format(hours) + ':' + format(minus)
+    } else if (this.timeFormat === 2) {
+      var interval = (new Date()).getTime() - time.getTime();
+      if (interval < 60 * 1000) {
+        resultStr = '刚刚'
+      } else if (interval < 3600 * 1000) {
+        resultStr = parseInt(interval / 60 / 1000) + '分钟前'
+      } else if (interval < 24 * 3600 * 1000) {
+        resultStr = parseInt(interval / 3600 / 1000) + '小时前'
+      } else {
+        resultStr = parseInt(interval / (24 * 3600 * 1000)) + '天前'
       }
-      return uid
     }
-    // api stauts handle
-    var startkey = '' // 上次请求数据中取
-    var newkey = '' // 上次请求数据中取
-    var idx =  0 // 已加载信息条数
-    var uid = getUid()
-    var isGetPosition = true
-    // var qid = '02151' // 渠道信息
-    var isFirst = true
-    return function (callback, error, isReset) {
+    return resultStr
+  },
+  get360Ad: function (impct, num, callback) {
+    var _this = this
+    _this.state.loadingNum++
+    this.adStatistics(1, null, null, num, 1001)
+    $l.ajax({
+      method: 'jsonp',
+      params: {
+        of: 4,
+        newf: 1,
+        type: 1,
+        showid: _this._360adId,
+        uid: _this.state['360Api'].uid,
+        reqtimes: _this.state['360Api'].reqtimes,
+        impct: impct
+      },
+      jsonp: 'jsonp',
+      jsonpCallback: 'n360ad',
+      url: '//show.g.mediav.com/s',
+      success: function (res) {
+        _this.adStatistics(2, null, null, num, 1001)
+        _this.state.loadingNum--
+        callback && callback(res.ads)
+        _this.state['360Api'].reqtimes++
+      },
+      error: function () {
+        _this.state.loadingNum--
+        callback && callback([])
+      }
+    })
+  },
+  getDongfangNews: function (callback, error, isReset, isClear) {
       var _this = this
-      // 重置请求信息
       if (isReset) {
-        startkey = ''
-        newkey = ''
-        idx =  0
-        isFirst = true
+        // 重置请求状态
+        _this.state.dongfangApi.startkey = ''
+        _this.state.dongfangApi.newkey = ''
+        _this.state.dongfangApi.idx =  0
+        _this.state.dongfangApi.isFirst = true
         _this.state.pagesList[_this.state.activeIndex] = 0
-        $l(this.target).find('.n256-tab-item')[this.state.activeIndex].innerHTML = ''
       }
+      if (isClear) {
+        // 清空已加载数据
+        _this.state.adsenseidList[_this.state.activeIndex] = _this.adsenseid
+        $l(_this.target).find('.n256-tab-item')[_this.state.activeIndex].innerHTML = ''
+      }
+      _this.state.loadingNum++
       function getPosition (next) {
         var position;
         position = $l.cookie('n256Position') || ''
-        if (!isGetPosition || position) {
+        if (!_this.state.dongfangApi.isGetPosition || position) {
           next && next(position)
         } else {
           $l.ajax({
@@ -777,18 +792,16 @@ NewsModule.prototype = {
             error: function () {
               next && next(position)
             },
-            jsonp: 'jsonp',
-            jsonpCallback: 'n256position'
+            jsonp: 'jsonp'
           })
-          isGetPosition = false
+          _this.state.dongfangApi.isGetPosition = false
         }
       }
       function fetchNews (position) {
         _this.newsStatistics(1)
-        window['isNewsLoading' + _this.hash] = true
         var page = _this.state.pagesList[_this.state.activeIndex] + 1
-        var newsnum = isFirst ? _this.newsNumFirst : _this.newsNumPer
-        isFirst = false
+        var newsnum = _this.state.dongfangApi.isFirst ? _this.newsNumFirst : _this.newsNumPer
+        _this.state.dongfangApi.isFirst = false
         var url = ''
         switch (_this.newsOrigin) {
           case 'dongfang': url = '//2345jsllq.dftoutiao.com/newsapi_pc/newsjp02';break;
@@ -800,78 +813,73 @@ NewsModule.prototype = {
           url: url,
           params: {
             type: _this.tabData[_this.state.activeIndex][1],
-            startkey: startkey,
-            newkey: newkey,
+            startkey: _this.state.dongfangApi.startkey,
+            newkey: _this.state.dongfangApi.newkey,
             pgnum: page,
-            uid: uid,
-            idx: idx,
+            uid: _this.state.dongfangApi.uid,
+            idx: _this.state.dongfangApi.idx,
             qid: _this.dongfangNewsId,
             position: position,
             newsnum: newsnum
           },
           success: function (res) {
+            _this.newsStatistics(2)
+            _this.state.loadingNum--
+            callback && callback(res.data)
             // api stauts handle
             _this.state.pagesList[_this.state.activeIndex]++
-            startkey = res.endkey
-            newkey = res.newkey
-            idx += res.data.length
-            // other mession
-            _this.newsStatistics(2)
-            window['isNewsLoading' + _this.hash] = false
-            callback && callback(res.data)
-            // // 重置新闻排行距离底部距离
+            _this.state.dongfangApi.startkey = res.endkey
+            _this.state.dongfangApi.newkey = res.newkey
+            _this.state.dongfangApi.idx += res.data.length
           },
           error: function () {
-            window['isNewsLoading' + _this.hash] = false
+            _this.state.loadingNum--
             error && error()
           }
         })
       }
       getPosition(fetchNews)
-    }
-  })(),
-  getNews: (function () {
-    var times = 0
-    return function (isReset) {
-      //if(this.target.offsetWidth === 0) return
-      var _this = this
-      this.getDongfangNews(function (res) {
-        if (!res && !res.length) {
-          times++
-          if (times >= _this.reloadTimes) {
-            times = 0
-            return _this.showNonewsNotice(true)
-          }
-          setTimeout(function () {
-            _this.getNews()
-          }, _this.reloadInterval)
-        } else {
-          times = 0
-          _this.fillNews(res)
-          _this.showNonewsNotice(false)
-        }
-      }, function () {
-        times++
-        // // 首次请求失败隐藏
-        // if (_this.state.pagesList[0] <= 0) {
-        //   _this.target.style.display = 'none'
-        //   return
-        // }
-        if (times >= _this.reloadTimes) {
-          times = 0
-          _this.showNonewsNotice(true)
-          return
+    },
+  getNews: function (tabIndex, isReset, isClear) {
+    if (this.target.offsetWidth === 0) return // 过滤隐藏信息流的无效请求
+    var _this = this
+    _this.newsReloadTimes = _this.newsReloadTimes || 0
+    _this.getDongfangNews(function (res) {
+      if (!res && !res.length) {
+        _this.newsReloadTimes++
+        if (_this.newsReloadTimes >= _this.reloadTimes) {
+          _this.newsReloadTimes = 0
+          return _this.showNonewsNotice(true)
         }
         setTimeout(function () {
-          _this.getNews()
+          _this.getNews(tabIndex, isReset, isClear)
         }, _this.reloadInterval)
-      }, isReset)
-    }
-  })(),
+      } else {
+        _this.newsReloadTimes = 0
+        _this.fillNews(res, tabIndex)
+        _this.showNonewsNotice(false)
+      }
+    }, function () {
+      _this.newsReloadTimes++
+      // // 首次请求失败隐藏
+      // if (_this.state.pagesList[0] <= 0) {
+      //   _this.target.style.display = 'none'
+      //   return
+      // }
+      if (_this.newsReloadTimes >= _this.reloadTimes) {
+        _this.newsReloadTimes = 0
+        _this.showNonewsNotice(true)
+        return
+      }
+      setTimeout(function () {
+        _this.getNews(tabIndex, isReset, isClear)
+      }, _this.reloadInterval)
+    }, isReset, isClear)
+  },
   createTab: function () {
     var tabContent = ''
     for (var i = 0; i < this.tabData.length; i++) {
-      var sep = '|', imgUrl = this.tabData[i][2]
+      var sep = '', imgUrl = this.tabData[i][2]
       if (i === this.tabData.length - 1) {
         sep = ''
       }
@@ -903,21 +911,21 @@ NewsModule.prototype = {
       newsItemContainer.appendChild(div)
     }
   },
-  refresh: function () {
-    location.href = '#' + this.containerId
-    this.getNews(true)
+  refresh: function (resetPosition) {
+    if (resetPosition) location.href = '#' + this.containerId;
+    this.getNews(this.state.activeIndex, true, true)
     this.showBottomNotice(false)
   },
-  fillNews: function (newsData, isClear) {
+  fillNews: function (newsData, tabIndex) {
     var newsModule = this
     var adNum360 = 0
     var content = '', type
-    var newsContainer = $l(this.target).find('.n256-tab-item')[this.state.activeIndex]
+    var newsContainer = $l(this.target).find('.n256-tab-item')[tabIndex || this.state.activeIndex]
     var _this = this
     for (var i = 0; i < newsData.length; i++) {
       // 选取广告类型
       var ad = ''
-      if ((i === this.firstAdPosition - 2 || (i - this.firstAdPosition - 1) % this.newsRadio === 0 && i + 1 > this.firstAdPosition) && this.showAd) {
+      if ((i === this.firstAdPosition - 2 || (i - this.firstAdPosition - 1) % this.newsRatio === 0 && i + 1 > this.firstAdPosition) && this.showAd) {
         var result = Math.random()
         var percent = 0
         for (var k in this.adConfig) {
@@ -957,25 +965,24 @@ NewsModule.prototype = {
       content += news
       content += ad
     }
-    if (isClear) {
-      newsContainer.innerHTML = ''
-    }
     var div = document.createElement('div')
     $l(div).attr('data-page', this.state.pagesList[this.state.activeIndex])
     $l(div).addClass('page-container')
     div.innerHTML = content
     newsContainer.appendChild(div)
+    setTimeout(function () {
+      newsModule.update && newsModule.update()
+    }, 0)
     // 填充百度广告
     var adBaidu = $l(div).find('.ad-baidu')
     for (var i = 0; i < adBaidu.length; i++) {
       var num = $l(adBaidu[i]).attr('data-num')
       adBaidu[i].innerHTML = this.baiduAdTemplate([num])
     }
-    if (!newsModule.adConfig[360]) {
-      setTimeout(function () {
-        newsModule.checkShow(null, true)
-      }, 600)
-    }
+    // 检测新加载内容是否展现
+    setTimeout(function () {
+      newsModule.checkShow(null, true)
+    }, 1000)
     // 填充360广告
     var _this = this
     if (!adNum360) return
@@ -1001,14 +1008,6 @@ NewsModule.prototype = {
         $l(ad360[i]).removeClass('ad-360').addClass('ad-baidu')
         ad360[i].innerHTML = _this.baiduAdTemplate([num])
       }
-      // 更新后检测展现部分
-      setTimeout(function () {
-        newsModule.checkShow(null, true)
-      }, 600)
-      setTimeout(function () {
-        newsModule.update && newsModule.update()
-        //$l(newsModule.target).find('.n256-tab-item')[newsModule.state.activeIndex].paddingBottom = '0px'
-      }, 0)
     })
   },
   showNonewsNotice: function (isShow) {
@@ -1071,7 +1070,7 @@ NewsModule.prototype = {
          type: 7,
          action: 'news',
          acode: type,
-         atime: parseInt(new Date().getTime() / 1000),
+         atime: parseInt((new Date()).getTime() / 1000),
          url: location.href,
          rurl: document.referrer,
          tab: this.tabData[this.state.activeIndex][1],
@@ -1113,7 +1112,7 @@ NewsModule.prototype = {
           type: 7,
           action: 'ad',
           acode: type,
-          atime: parseInt(new Date().getTime() / 1000),
+          atime: parseInt((new Date()).getTime() / 1000),
           url: location.href || '',
           rurl: document.referrer || '',
           tab: this.tabData[this.state.activeIndex][1],
@@ -1140,11 +1139,11 @@ NewsModule.prototype = {
     var newsModule = this
     // 点击加载更多按钮
     $l(newsModule.target).find('.n256-load-more-btn').on('click', function () {
-     newsModule.getNews()
+     newsModule.getNews(newsModule.state.activeIndex)
     })
     // 点击 到底了 按钮
     $l(newsModule.target).find('.n256-news-loadnotice').on('click', function () {
-      newsModule.refresh()
+      newsModule.refresh(true)
     })
     // 点击刷新按钮
     $l(newsModule.target).find('.refresh-btn').on('click', function () {
@@ -1188,10 +1187,24 @@ NewsModule.prototype = {
       }
       if (isvisited) {
         return
-      } else if (!window['isNewsLoading' + newsModule.hash]) {
-        newsModule.getNews(true)
+      } else if (!newsModule.state.loadingNum) {
+        newsModule.getNews(newsModule.state.activeIndex, true)
         $l(this).attr('isvisited', 'true')
       }
+    }
+    // 信息流由隐藏转展现时若无数据则添加
+    function resizeHandler() {
+      if (!newsModule.state.pagesList[newsModule.state.activeIndex] &&
+        !newsModule.state.loadingNum &&
+        newsModule.spaceToBottom(newsModule.target) <= newsModule.loadInstance
+      ) {
+        newsModule.getNews(newsModule.state.activeIndex, true)
+      }
+    }
+    if (window.addEventListener) {
+      window.addEventListener('resize', resizeHandler)
+    } else {
+      window.attachEvent('onresize', resizeHandler)
     }
      // 滚动到底部行为
      function scrollLoadHandle () {
@@ -1242,8 +1255,8 @@ NewsModule.prototype = {
          }
          // 加载下一页
          if (spaceToBottom <= newsModule.instance) {
-          if (!window['isNewsLoading' + newsModule.hash]) {
-            newsModule.getNews()
+          if (!newsModule.state.loadingNum) {
+            newsModule.getNews(newsModule.state.activeIndex)
           }
         }
       }
@@ -1255,18 +1268,22 @@ NewsModule.prototype = {
       scrollTarget.attachEvent('onscroll', scrollLoadHandle)
     }
   },
+  spaceToBottom :function (dom) {
+    return $l(dom).offset().top - (window.pageYOffset || document.documentElement.scrollTop) -
+      (window.innerHeight || document.documentElement.clientHeight);
+  },
   bindStatisticsEvent: function () {
     var newsModule =  this
     // 点击360广告
     var timeStart, timeEnd
     $l(newsModule.target).on('mousedown', '.ad-360', function (evt) {
-     timeStart = new Date().getTime()
+     timeStart = (new Date()).getTime()
     })
     $l(newsModule.target).on('mouseup', '.ad-360', function (evt) {
       if (evt.button === 2) return
       var target = $l($l(this).child()[0])
       var clktk = target.attr('data-clktk')
-      var timeEnd = new Date().getTime()
+      var timeEnd = (new Date()).getTime()
       clktk = clktk.replace('__EVENT_TIME_START__', timeStart)
       clktk = clktk.replace('__EVENT_TIME_END__', timeEnd)
       clktk = clktk.replace('__OFFSET_X__', newsModule.getAdPosition(evt).x)
@@ -1331,97 +1348,95 @@ NewsModule.prototype = {
     // })
     // 所有内容展现时统计处理
     var scrollTarget = newsModule.containerHeight ? newsModule.newsContainer : window
-    var showStatisticsHandle = (function () {
-      var prevTime = 0, times = 0, nowTime = 0
-      return function (evt, forceExecute) {
-        if (!forceExecute) {
-          // 过滤执行次数
-          var scrollSpaceNow
-          times++
-          if (newsModule.scrollOptimizeMethod === 'times') {
-            if (times >= newsModule.scrollTimes) {
-              times = 0
-            } else {
-              return
-            }
+    var showStatisticsHandle = function (evt, forceExecute) {
+      var scrollState = newsModule.state.scroll
+      if (!forceExecute) {
+        // 过滤执行次数
+        var scrollSpaceNow
+        scrollState.times++
+        if (newsModule.scrollOptimizeMethod === 'times') {
+          if (scrollState.times >= newsModule.scrollTimes) {
+            scrollState.times = 0
           } else {
-            nowTime = new Date().getTime()
-            if (nowTime - prevTime > newsModule.scrollInterval) {
-              prevTime = nowTime
-            } else {
-              return
-            }
+            return
           }
-        }
-        // 执行展现统计处理
-        var container = $l(newsModule.target).find('.n256-tab-item').eq(newsModule.state.activeIndex)
-        var newsList = container.find('.news-item')
-        var _360Ad = container.find('.ad-360')
-        var baiduAd = container.find('.ad-baidu')
-        for (var i = 0; i < newsList.length; i++) {
-          var isvisited = $l(newsList[i]).attr('isvisited')
-          if (!isvisited && $l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace)) {
-            // 参数处理
-            var nindex = 0
-            var nurl = $l(newsList[i]).attr('data-url')
-            var page = $l(newsList[i].parentNode).attr('data-page')
-            if (page >= 2) {
-              nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-            } else {
-              nindex = $l(newsList[i]).index()
-            }
-            // 展现的新闻放入缓冲区
-            newsModule.newsBuffer.nurl.push(nurl)
-            newsModule.newsBuffer.nindex.push(nindex + 1)
-            $l(newsList[i]).attr('isvisited', 'true')
-          }
-        }
-        for (var i = 0; i < _360Ad.length; i++) {
-          var item = $l(_360Ad[i])
-          var isvisited = item.attr('isvisited')
-          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
-            // 参数处理
-            var aurl = item.attr('data-url')
-            var adsenseid = item.attr('data-num')
-            var aindex = 0
-            var channelid = 1001
-            var page = $l(item[0].parentNode).attr('data-page')
-            if (page >= 2) {
-              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-            } else {
-              aindex = item.index()
-            }
-            // 展现的360广告直接发送统计
-            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
-            if (item.child()[0]) {
-              var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
-              newsModule._360Statistics(imptk)
-            }
-            item.attr('isvisited', 'true')
-          }
-        }
-        for (var i = 0; i < baiduAd.length; i++) {
-          var item = $l(baiduAd[i])
-          var isvisited = item.attr('isvisited')
-          if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
-            // 参数处理
-            var aurl = item.attr('data-url')
-            var adsenseid = item.attr('data-num')
-            var aindex = 0
-            var channelid = 1002
-            var page = $l(baiduAd[i].parentNode).attr('data-page')
-            if (page >= 2) {
-              aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
-            } else {
-              aindex = item.index()
-            }
-            // 展现的百度广告直接发送统计
-            newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
-            item.attr('isvisited', 'true')
+        } else {
+          scrollState.nowTime = (new Date()).getTime()
+          if (scrollState.nowTime - scrollState.prevTime > newsModule.scrollInterval) {
+            scrollState.prevTime = scrollState.nowTime
+          } else {
+            return
           }
         }
       }
-    })()
+      // 执行展现统计处理
+      var container = $l(newsModule.target).find('.n256-tab-item').eq(newsModule.state.activeIndex)
+      var newsList = container.find('.news-item')
+      var _360Ad = container.find('.ad-360')
+      var baiduAd = container.find('.ad-baidu')
+      for (var i = 0; i < newsList.length; i++) {
+        var isvisited = $l(newsList[i]).attr('isvisited')
+        if (!isvisited && $l(newsList[i]).isInView(newsModule.containerHeight, newsModule.showSpace)) {
+          // 参数处理
+          var nindex = 0
+          var nurl = $l(newsList[i]).attr('data-url')
+          var page = $l(newsList[i].parentNode).attr('data-page')
+          if (page >= 2) {
+            nindex = $l(newsList[i]).index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            nindex = $l(newsList[i]).index()
+          }
+          // 展现的新闻放入缓冲区
+          newsModule.newsBuffer.nurl.push(nurl)
+          newsModule.newsBuffer.nindex.push(nindex + 1)
+          $l(newsList[i]).attr('isvisited', 'true')
+        }
+      }
+      for (var i = 0; i < _360Ad.length; i++) {
+        var item = $l(_360Ad[i])
+        var isvisited = item.attr('isvisited')
+        if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item.child().length) {
+          // 参数处理
+          var aurl = item.attr('data-url')
+          var adsenseid = item.attr('data-num')
+          var aindex = 0
+          var channelid = 1001
+          var page = $l(item[0].parentNode).attr('data-page')
+          if (page >= 2) {
+            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            aindex = item.index()
+          }
+          // 展现的360广告直接发送统计
+          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+          if (item.child()[0]) {
+            var imptk = $l(item.child()[0]).attr('data-imptk').split(',')
+            newsModule._360Statistics(imptk)
+          }
+          item.attr('isvisited', 'true')
+        }
+      }
+      for (var i = 0; i < baiduAd.length; i++) {
+        var item = $l(baiduAd[i])
+        var isvisited = item.attr('isvisited')
+        if (item.isInView(newsModule.containerHeight, newsModule.showSpace) && !isvisited && item[0].offsetHeight >= 10) {
+          // 参数处理
+          var aurl = item.attr('data-url')
+          var adsenseid = item.attr('data-num')
+          var aindex = 0
+          var channelid = 1002
+          var page = $l(baiduAd[i].parentNode).attr('data-page')
+          if (page >= 2) {
+            aindex = item.index() + (page - 2 ) * (newsModule.newsNumPer + newsModule.adNumPer) + (newsModule.adNumFirst + newsModule.newsNumFirst)
+          } else {
+            aindex = item.index()
+          }
+          // 展现的百度广告直接发送统计
+          newsModule.adStatistics(3, aurl, aindex + 1, [adsenseid], channelid)
+          item.attr('isvisited', 'true')
+        }
+      }
+    }
     this.checkShow = showStatisticsHandle
     if (window.addEventListener) {
       scrollTarget.addEventListener('scroll', showStatisticsHandle)
