@@ -1,1 +1,19 @@
-.scrollbar-bar{width:8px;background:#aaa;height:100%;top:0;right:0;position:absolute;border-radius:4px;overflow:hidden}.scrollbar-block{width:100%;background:#555;position:absolute;left:0;top:0;border-radius:4px}.scrollbar-block:hover{background:#444}
+.scrollbar-bar {
+  width: 8px;
+  background: #aaa;
+  height: 100%;
+  top: 0;
+  right: 0;
+  position: absolute;
+  border-radius: 4px;
+  overflow: hidden; }
+
+.scrollbar-block {
+  width: 100%;
+  background: #555;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 4px; }
+  .scrollbar-block:hover {
+    background: #444; }

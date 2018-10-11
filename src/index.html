@@ -26,16 +26,17 @@
 <body>
   <h4>例一：容器内滚动</h4>
   <div id='test'></div>
-  <h4>例二：页面上滚动</h4>
+  <h4>例二：页面上滚动(已注释)</h4>
   <div id='test2'></div>
   <script src='js/newsModule-v2.js' charset='utf-8'></script>
   <script>
-      new NewsModule ({
+      createNewsModule({
         containerId: 'test',
           adsenseid: 10002001,
           newsAdsenseid: 100020,
           dongfangNewsId: '03090',
           adConfig: {baidu:1},
+          showAd: false,
           tabData: [['头条', 'toutiao'],['军事', 'junshi'], ['体育', 'tiyu'], ['笑话', 'xiaohua']],
           // tabData: [['头条', 'toutiao'],['电影', 'dianying'], ['电视', 'dianshi'], ['娱乐', 'yule']],
           newsRadio: 3,
@@ -51,9 +52,10 @@
           },
           showRefreshBtn: true,
           adInsertWay: 'order',
-          timeFormat: 2
+          timeFormat: 2,
+          shieldCityList: ['南京']
       })
-    //   new NewsModule ({
+    //   createNewsModule({
     //     containerId: 'test2',
     //     adsenseid: 10002001,
     //     newsAdsenseid: 100021,

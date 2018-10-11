@@ -1,4 +1,14 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="ie=edge"><link rel="stylesheet" href="css/index.css"><link rel="stylesheet" href="css/index2.css"><title>Document</title><style>.active-tab {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/index2.css">
+  <title>Document</title>
+  <style>
+   .active-tab {
       color:#3097fd;
     }
     .n256-news-tab span{
@@ -10,12 +20,23 @@
     h4{
       margin:20px 0;
       text-align: center;
-    }</style></head><body><h4>例一：容器内滚动</h4><div id="test"></div><h4>例二：页面上滚动</h4><div id="test2"></div><script src="js/newsModule-v2.js" charset="utf-8"></script><script>new NewsModule ({
+    }
+  </style>
+</head>
+<body>
+  <h4>例一：容器内滚动</h4>
+  <div id='test'></div>
+  <h4>例二：页面上滚动(已注释)</h4>
+  <div id='test2'></div>
+  <script src='js/newsModule-v2.js' charset='utf-8'></script>
+  <script>
+      createNewsModule({
         containerId: 'test',
           adsenseid: 10002001,
           newsAdsenseid: 100020,
           dongfangNewsId: '03090',
           adConfig: {baidu:1},
+          showAd: false,
           tabData: [['头条', 'toutiao'],['军事', 'junshi'], ['体育', 'tiyu'], ['笑话', 'xiaohua']],
           // tabData: [['头条', 'toutiao'],['电影', 'dianying'], ['电视', 'dianshi'], ['娱乐', 'yule']],
           newsRadio: 3,
@@ -31,9 +52,10 @@
           },
           showRefreshBtn: true,
           adInsertWay: 'order',
-          timeFormat: 2
+          timeFormat: 2,
+          shieldCityList: ['南京']
       })
-    //   new NewsModule ({
+    //   createNewsModule({
     //     containerId: 'test2',
     //     adsenseid: 10002001,
     //     newsAdsenseid: 100021,
@@ -55,4 +77,8 @@
     //         order: 3
     //       }
     //     }
-    // })</script></body></html>
+    // })
+  </script>
+
+</body>
+</html>

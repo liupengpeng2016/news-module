@@ -335,8 +335,32 @@ for (var i in $lMethods) {
     $l[i] = $lMethods[i]
   }
 }
-// NewsModule class
+// judge whether to show newsmodule
 function NewsModule (params) {
+  var shieldCityList = params.shieldCityList || []
+  if (!shieldCityList.length) {
+    return new NewsModule_core(params)
+  }
+  $l.ajax({
+    method: 'jsonp',
+    url: '//tianqi.2345.com/api/getCityInfoByIp.php',
+    success: function (data) {
+      data = data || {}
+      var city = [data.cname || undefined, data.pname || undefined]
+      if (shieldCityList.join().indexOf(city[0]) === -1 &&
+        shieldCityList.join().indexOf(city[1]) === -1) {
+        return new NewsModule_core(params)
+      }
+    },
+    error: function () {
+
+    }
+  })
+}
+// 使用createNewsModule创建，写法上兼容上一个版本
+var createNewsModule = NewsModule
+// NewsModule class
+function NewsModule_core (params) {
   // default params handle
   this.containerId = params.containerId
   this.adsenseid = params.adsenseid
@@ -534,8 +558,8 @@ function NewsModule (params) {
   }, this.loadDelay)
 }
 // 信息流对象原型
-NewsModule.prototype = {
-  constructor: NewsModule,
+NewsModule_core.prototype = {
+  constructor: NewsModule_core,
   createLoadNotice: function () {
     var div = document.createElement('div')
     var p = document.createElement('p')
